@@ -1,22 +1,23 @@
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useState } from "react";
 import { Card, CardBody, CardTitle, CardText } from "reactstrap";
 
 export default function ReceipeList() {
-  const recipes = [
-    {
-      id: "1",
-      title: "Carne asado tacos",
-      notes: "Test notes",
-      tags: [],
-      img: null,
-    },
-  ];
+  const [recipes, setRecipes] = useState<
+    Array<{ id: string; title: string; notes: string }>
+  >([]);
+
+  useEffect(() => {
+    fetch("/api/recipes").then((r) =>
+      r.json().then((r) => setRecipes(r.recipes as any))
+    );
+  }, []);
 
   return (
     <>
       {recipes.map((r) => (
-        <Card>
+        <Card key={r.id}>
           <CardBody>
             <CardTitle tag="h5">
               <div className="d-flex justify-content-between">
