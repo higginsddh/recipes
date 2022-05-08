@@ -1,6 +1,6 @@
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Card, CardBody, CardTitle, CardText, Button } from "reactstrap";
+import { Card, CardBody, CardTitle, CardText } from "reactstrap";
 
 export default function ReceipeList() {
   const recipes = [
