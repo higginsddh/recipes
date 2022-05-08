@@ -25,10 +25,14 @@ export default function ReceipeList() {
                 <div>{r.title}</div>
                 <div>
                   <IconButton>
-                    <FontAwesomeIcon icon={faEdit} />
+                    <FontAwesomeIcon icon={faEdit} title="Edit Receipt" />
                   </IconButton>
                   <IconButton>
-                    <FontAwesomeIcon icon={faTrash} className="ms-3" />
+                    <FontAwesomeIcon
+                      icon={faTrash}
+                      title="Delete Receipt"
+                      className="ms-3"
+                    />
                   </IconButton>
                 </div>
               </div>
