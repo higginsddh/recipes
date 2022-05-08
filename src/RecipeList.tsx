@@ -2,6 +2,7 @@ import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { Card, CardBody, CardTitle, CardText } from "reactstrap";
+import IconButton from "./IconButton";
 
 export default function ReceipeList() {
   const [recipes, setRecipes] = useState<
@@ -23,8 +24,12 @@ export default function ReceipeList() {
               <div className="d-flex justify-content-between">
                 <div>{r.title}</div>
                 <div>
-                  <FontAwesomeIcon icon={faEdit} />
-                  <FontAwesomeIcon icon={faTrash} className="ms-3" />
+                  <IconButton>
+                    <FontAwesomeIcon icon={faEdit} />
+                  </IconButton>
+                  <IconButton>
+                    <FontAwesomeIcon icon={faTrash} className="ms-3" />
+                  </IconButton>
                 </div>
               </div>
             </CardTitle>
