@@ -2,15 +2,15 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import { CosmosClient } from "@azure/cosmos";
 import { uuid } from "uuidv4";
 
-export default function handler(
+export default async function handler(
   request: VercelRequest,
   response: VercelResponse
 ) {
   switch (request.method) {
-    // case "GET":
-    //   return await getRecipes(request, response);
-    // case "POST":
-    //   return await createRecipe(request, response);
+    case "GET":
+      return await getRecipes(request, response);
+    case "POST":
+      return await createRecipe(request, response);
     default:
       return response.status(405);
   }
@@ -18,9 +18,9 @@ export default function handler(
 
 async function getRecipes(request: VercelRequest, response: VercelResponse) {
   const container = await getContainer();
-  // const recipes = (await container.items.readAll().fetchAll()).resources;
+  const recipes = (await container.items.readAll().fetchAll()).resources;
 
-  const data = { recipes: [] };
+  const data = { recipes };
   return response.status(200).json(data);
 }
 

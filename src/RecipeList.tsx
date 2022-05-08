@@ -5,14 +5,9 @@ import { Card, CardBody, CardTitle, CardText } from "reactstrap";
 import IconButton from "./IconButton";
 
 export default function ReceipeList() {
-  const {
-    isLoading,
-    error,
-    data: recipes,
-  } = useQuery<Array<{ id: string; title: string; notes: string }>>(
-    "recipes",
-    () => fetch("/api/recipes").then((res) => res.json())
-  );
+  const { isLoading, error, data } = useQuery<{
+    recipes: Array<{ id: string; title: string; notes: string }>;
+  }>("recipes", () => fetch("/api/recipes").then((res) => res.json()));
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -25,7 +20,7 @@ export default function ReceipeList() {
 
   return (
     <>
-      {(recipes ?? []).map((r) => (
+      {(data?.recipes ?? []).map((r) => (
         <Card key={r.id}>
           <CardBody>
             <CardTitle tag="h5">
