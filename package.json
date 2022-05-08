@@ -1,6 +1,7 @@
 {
   "private": true,
   "dependencies": {
+    "@azure/cosmos": "^3.15.1",
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/react-fontawesome": "^0.1.18",
@@ -11,12 +12,15 @@
     "@types/node": "^17.0.31",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.3",
+    "@vercel/node": "^1.15.0",
     "bootstrap": "^5.1.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-query": "^3.39.0",
     "react-scripts": "5.0.1",
     "reactstrap": "^9.0.2",
     "typescript": "^4.6.4",
+    "uuidv4": "^6.2.13",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

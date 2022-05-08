@@ -1,23 +1,31 @@
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { Card, CardBody, CardTitle, CardText } from "reactstrap";
 import IconButton from "./IconButton";
 
 export default function ReceipeList() {
-  const [recipes, setRecipes] = useState<
-    Array<{ id: string; title: string; notes: string }>
-  >([]);
+  const {
+    isLoading,
+    error,
+    data: recipes,
+  } = useQuery<Array<{ id: string; title: string; notes: string }>>(
+    "recipes",
+    () => fetch("/api/recipes").then((res) => res.json())
+  );
 
-  useEffect(() => {
-    fetch("/api/recipes").then((r) =>
-      r.json().then((r) => setRecipes(r.recipes as any))
-    );
-  }, []);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    console.error(error);
+    return <div>"An error has occurred"</div>;
+  }
 
   return (
     <>
-      {recipes.map((r) => (
+      {(recipes ?? []).map((r) => (
         <Card key={r.id}>
           <CardBody>
             <CardTitle tag="h5">

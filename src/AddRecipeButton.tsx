@@ -3,7 +3,7 @@ import { Button } from "reactstrap";
 import ReceipeForm from "./ReceipeForm";
 
 export default function AddReceiptButton() {
-  const [showForm, setShowForm] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <>
