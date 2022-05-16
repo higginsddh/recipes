@@ -16,29 +16,32 @@ type FormPayload = {
 };
 
 async function postData(url = "", data = {}) {
-  const response = await fetch(url, {
+  return await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
-
-  return response.json();
 }
 
 export default function ReceipeForm({ onClose }: { onClose: () => void }) {
   const { register, handleSubmit } = useForm<FormPayload>();
 
   const mutation = useMutation(
-    (recipe: FormPayload) => {
-      return postData("/api/recipes", recipe);
+    async (recipe: FormPayload) => {
+      const response = await postData("/api/recipes", recipe);
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
     },
     {
       onSuccess: () => {
         onClose();
       },
-      onError: (e) => console.error(e),
+      onError: (e) => console.error(JSON.stringify(e)),
     }
   );
 
@@ -51,11 +54,14 @@ export default function ReceipeForm({ onClose }: { onClose: () => void }) {
           id="modalForm"
         >
           <FormGroup>
-            <Label for="title">Title</Label>
+            <Label for="title" className="required">
+              Title
+            </Label>
             <input
               id="title"
               type="text"
               className="form-control"
+              required
               {...register("title")}
             />
           </FormGroup>
