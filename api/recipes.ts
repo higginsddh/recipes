@@ -21,7 +21,7 @@ export default async function handler(
 
 async function getRecipes(request: VercelRequest, response: VercelResponse) {
   const container = await getContainer();
-  const recipes = (await container.items.readAll().fetchAll()).resources;
+  const recipes = (await container.items.readAll().fetchNext()).resources;
 
   const data = { recipes };
   return response.status(200).json(data);
@@ -56,12 +56,8 @@ async function deleteRecipe(request: VercelRequest, response: VercelResponse) {
 
 export async function getContainer() {
   const client = new CosmosClient(process.env.COSMOS_CONNETION);
-  const { database } = await client.databases.createIfNotExists({
-    id: "Recipes",
-  });
-  const { container } = await database.containers.createIfNotExists({
-    id: "Recipes",
-  });
+  const database = client.database("Recipes");
+  const container = database.container("Recipes");
 
   return container;
 }
