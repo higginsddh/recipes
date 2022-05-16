@@ -21,7 +21,7 @@ export default function ReceipeList() {
   return (
     <>
       {(data?.recipes ?? []).map((r) => (
-        <Card key={r.id}>
+        <Card key={r.id} className="mb-3">
           <CardBody>
             <CardTitle tag="h5">
               <div className="d-flex justify-content-between">

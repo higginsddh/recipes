@@ -6,6 +6,7 @@ export default async function handler(
   request: VercelRequest,
   response: VercelResponse
 ) {
+  console.log("test");
   switch (request.method) {
     case "GET":
       return await getRecipes(request, response);
@@ -30,6 +31,8 @@ async function createRecipe(request: VercelRequest, response: VercelResponse) {
     ...request.body,
     id: uuid(),
   });
+
+  return response.status(200).json({});
 }
 
 export async function getContainer() {

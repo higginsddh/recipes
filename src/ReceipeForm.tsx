@@ -1,10 +1,7 @@
-import { useRef, useState } from "react";
 import { useMutation } from "react-query";
 import {
   Button,
-  Form,
   FormGroup,
-  Input,
   Label,
   Modal,
   ModalBody,
@@ -18,21 +15,30 @@ type FormPayload = {
   notes: string;
 };
 
+async function postData(url = "", data = {}) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  return response.json();
+}
+
 export default function ReceipeForm({ onClose }: { onClose: () => void }) {
   const { register, handleSubmit } = useForm<FormPayload>();
 
   const mutation = useMutation(
     (recipe: FormPayload) => {
-      return fetch("/api/recipes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(recipe),
-      });
+      return postData("/api/recipes", recipe);
     },
     {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        onClose();
+      },
+      onError: (e) => console.error(e),
     }
   );
 
@@ -40,19 +46,29 @@ export default function ReceipeForm({ onClose }: { onClose: () => void }) {
     <Modal isOpen={true}>
       <ModalHeader>Recipe</ModalHeader>
       <ModalBody>
-        <Form
+        <form
           onSubmit={handleSubmit((data) => mutation.mutate(data))}
           id="modalForm"
         >
           <FormGroup>
             <Label for="title">Title</Label>
-            <Input id="title" type="text" {...register("title")} />
+            <input
+              id="title"
+              type="text"
+              className="form-control"
+              {...register("title")}
+            />
           </FormGroup>
           <FormGroup>
             <Label for="notes">Notes</Label>
-            <Input id="notes" type="textarea" {...register("notes")} />
+            <input
+              id="notes"
+              type="textarea"
+              className="form-control"
+              {...register("notes")}
+            />
           </FormGroup>
-        </Form>
+        </form>
       </ModalBody>
       <ModalFooter>
         <Button type="submit" color="primary" form="modalForm">
