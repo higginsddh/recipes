@@ -1,5 +1,4 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { CosmosClient } from "@azure/cosmos";
 import { uuid } from "uuidv4";
 import { Recipe } from "../models/recipe";
 import { db } from "./lib/prisma";
