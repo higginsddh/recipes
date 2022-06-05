@@ -56,8 +56,8 @@ async function deleteRecipe(request: VercelRequest, response: VercelResponse) {
 
 export async function getContainer() {
   const client = new CosmosClient(process.env.COSMOS_CONNETION);
-  const database = client.database("Recipes");
-  const container = database.container("Recipes");
+  const database = client.database("FoodOrganizer");
+  const container = database.container("FoodOrganizer");
 
   return container;
 }
