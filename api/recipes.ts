@@ -2,6 +2,7 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import { CosmosClient } from "@azure/cosmos";
 import { uuid } from "uuidv4";
 import { Recipe } from "../models/recipe";
+import { db } from "./lib/prisma";
 
 export default async function handler(
   request: VercelRequest,
@@ -20,16 +21,13 @@ export default async function handler(
 }
 
 async function getRecipes(request: VercelRequest, response: VercelResponse) {
-  const container = await getContainer();
-  const recipes = (await container.items.readAll().fetchNext()).resources;
+  const recipes = await db.recipe.findMany({});
 
   const data = { recipes };
   return response.status(200).json(data);
 }
 
 async function createRecipe(request: VercelRequest, response: VercelResponse) {
-  const container = await getContainer();
-
   const body = request.body as Recipe;
   if (!(body.title ?? "").trim()) {
     return response.status(400).json({
@@ -37,27 +35,24 @@ async function createRecipe(request: VercelRequest, response: VercelResponse) {
     });
   }
 
-  await container.items.create({
-    ...request.body,
-    id: uuid(),
+  await db.recipe.create({
+    data: {
+      title: body.title,
+      notes: body.notes,
+    },
   });
 
   return response.status(200).json({});
 }
 
 async function deleteRecipe(request: VercelRequest, response: VercelResponse) {
-  const id = request.query["id"] as string;
+  const id = parseInt(request.query["id"] as string);
 
-  const container = await getContainer();
-  await container.item(id).delete();
+  await db.recipe.delete({
+    where: {
+      id: id,
+    },
+  });
 
   return response.status(200).json({});
-}
-
-export async function getContainer() {
-  const client = new CosmosClient(process.env.COSMOS_CONNETION);
-  const database = client.database("FoodOrganizer");
-  const container = database.container("FoodOrganizer");
-
-  return container;
 }

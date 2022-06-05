@@ -1,6 +1,6 @@
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = env("PLANETSCALE_DB")
   referentialIntegrity = "prisma"
 }
 
@@ -9,7 +9,7 @@ generator client {
   previewFeatures = ["referentialIntegrity"]
 }
 
-model Star {
+model Recipe {
   id              Int       @default(autoincrement()) @id
   title            String    @db.VarChar(255)
   notes   String    @db.VarChar(255)
