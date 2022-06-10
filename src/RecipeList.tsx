@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Card, CardBody, CardTitle, CardText } from "reactstrap";
 import { Recipe } from "../models/recipe";
+import { buildRoute } from "./buildRoute";
 import IconButton from "./IconButton";
 
 type RecipesData = {
@@ -19,14 +20,14 @@ type MutationResult = {
 
 export default function ReceipeList() {
   const { isLoading, error, data } = useQuery<RecipesData>("recipes", () =>
-    fetch("/api/recipes").then((res) => res.json())
+    fetch(buildRoute("/api/recipes")).then((res) => res.json())
   );
 
   const queryClient = useQueryClient();
 
   const mutation = useMutation(
     async (id: string) => {
-      await fetch(`/api/recipes?id=${id}`, {
+      await fetch(buildRoute(`/api/recipes?id=${id}`), {
         method: "DELETE",
       });
     },

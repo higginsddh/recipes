@@ -7,4 +7,4 @@ DB local connection string: mysql://root@127.0.0.1:3309/food-organizer
 Helpful links:
 https://docs.microsoft.com/en-us/javascript/api/overview/azure/cosmos-readme
 https://docs.microsoft.com/en-us/azure/static-web-apps/build-configuration?tabs=github-actions#build-and-deploy
-https://docs.microsoft.com/en-us/azure/static-web-apps/add-api?tabs=vanilla-javascript
+https://docs.microsoft.com/en-us/azure/static-web-apps/add-api
