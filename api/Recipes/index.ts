@@ -10,14 +10,18 @@ const httpTrigger: AzureFunction = async function (
   switch (req.method) {
     case "GET":
       await getRecipes(req, context);
+      return;
     case "POST":
       await createRecipe(req, context);
+      return;
     case "DELETE":
       await deleteRecipe(req, context);
+      return;
     default:
       context.res = {
         status: 405,
       };
+      return;
   }
 };
 
@@ -26,7 +30,7 @@ export default httpTrigger;
 async function getRecipes(request: HttpRequest, context: Context) {
   const container = await getContainer();
   const { resources: recipes } = await container.items
-    .query("SELET * FROM c")
+    .query("SELECT * FROM c")
     .fetchAll();
 
   const data = { recipes };

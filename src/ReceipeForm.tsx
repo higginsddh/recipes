@@ -1,4 +1,4 @@
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import {
   Button,
   FormGroup,
@@ -27,6 +27,7 @@ async function postData(url = "", data = {}) {
 
 export default function ReceipeForm({ onClose }: { onClose: () => void }) {
   const { register, handleSubmit } = useForm<FormPayload>();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation(
     async (recipe: FormPayload) => {
@@ -35,10 +36,10 @@ export default function ReceipeForm({ onClose }: { onClose: () => void }) {
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      return response.json();
     },
     {
       onSuccess: () => {
+        queryClient.invalidateQueries("recipes");
         onClose();
       },
       onError: (e) => console.error(JSON.stringify(e)),

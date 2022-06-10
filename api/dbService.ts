@@ -7,6 +7,8 @@ export async function getContainer() {
     return container;
   }
 
+  console.log("test");
+  console.log(process.env.CONNECTION_STRING);
   const client = new CosmosClient(process.env.CONNECTION_STRING);
   const { database } = await client.databases.createIfNotExists({
     id: "RestaurantTracker",
