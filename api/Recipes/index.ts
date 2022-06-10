@@ -1,20 +1,19 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { Recipe } from "../../models/recipe";
 import { getContainer } from "../dbService";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
-  request: HttpRequest
+  req: HttpRequest
 ): Promise<void> {
   context.log("HTTP trigger function processed a request.");
 
-  switch (request.method) {
+  switch (req.method) {
     case "GET":
-      await getRecipes(request, context);
+      await getRecipes(req, context);
     case "POST":
-      await createRecipe(request, context);
+      await createRecipe(req, context);
     case "DELETE":
-      await deleteRecipe(request, context);
+      await deleteRecipe(req, context);
     default:
       context.res = {
         status: 405,
@@ -37,7 +36,7 @@ async function getRecipes(request: HttpRequest, context: Context) {
 }
 
 async function createRecipe(request: HttpRequest, context: Context) {
-  const body = request.body as Recipe;
+  const body = request.body as any;
   if (!(body.title ?? "").trim()) {
     context.res = {
       status: 400,

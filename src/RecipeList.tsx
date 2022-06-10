@@ -62,7 +62,7 @@ export default function ReceipeList() {
 
   if (error) {
     console.error(error);
-    return <div>"An error has occurred"</div>;
+    return <div>An error has occurred</div>;
   }
 
   return (
