@@ -2,21 +2,10 @@ import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Card, CardBody, CardTitle, CardText } from "reactstrap";
-import { Recipe } from "../models/recipe";
+import { RecipesData } from "../models/recipesData";
 import { buildRoute } from "./buildRoute";
+import DeleteRecipe from "./DeleteRecipe";
 import IconButton from "./IconButton";
-
-type RecipesData = {
-  recipes: Array<
-    {
-      id: string;
-    } & Recipe
-  >;
-};
-
-type MutationResult = {
-  previousRecipes: RecipesData;
-};
 
 export default function ReceipeList() {
   const { isLoading, error, data } = useQuery<RecipesData>("recipes", () =>
@@ -24,37 +13,6 @@ export default function ReceipeList() {
   );
 
   const queryClient = useQueryClient();
-
-  const mutation = useMutation(
-    async (id: string) => {
-      await fetch(buildRoute(`/api/recipes?id=${id}`), {
-        method: "DELETE",
-      });
-    },
-    {
-      onMutate: async (id: string) => {
-        await queryClient.cancelQueries("recipes");
-
-        const previousRecipes = queryClient.getQueriesData(
-          "recipes"
-        ) as unknown as RecipesData;
-
-        queryClient.setQueryData<RecipesData>("recipes", (old) => ({
-          recipes: old?.recipes.filter((r) => r.id !== id) ?? [],
-        }));
-
-        return { previousRecipes } as MutationResult;
-      },
-
-      onSuccess: () => {
-        queryClient.invalidateQueries("receipes");
-      },
-
-      onError: (err: any, newRecipes: any, context: any) => {
-        queryClient.setQueryData("recipes", context.previousRecipes);
-      },
-    }
-  );
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -77,14 +35,7 @@ export default function ReceipeList() {
                   <IconButton>
                     <FontAwesomeIcon icon={faEdit} title="Edit Receipt" />
                   </IconButton>
-                  <IconButton>
-                    <FontAwesomeIcon
-                      icon={faTrash}
-                      title="Delete Receipt"
-                      className="ms-3"
-                      onClick={() => mutation.mutate(r.id)}
-                    />
-                  </IconButton>
+                  <DeleteRecipe id={r.id} />
                 </div>
               </div>
             </CardTitle>
