@@ -16,6 +16,7 @@ import { useEffect, useRef } from "react";
 type FormPayload = {
   title: string;
   notes: string;
+  link: string;
 };
 
 async function postData(url = "", data = {}) {
@@ -68,8 +69,9 @@ export default function ReceipeForm({
   useEffect(() => {
     if (!hasFormInitialized.current) {
       reset({
-        title: defaultRecipeData?.title,
-        notes: defaultRecipeData?.notes,
+        title: defaultRecipeData?.title ?? "",
+        notes: defaultRecipeData?.notes ?? "",
+        link: defaultRecipeData?.link ?? "",
       });
       hasFormInitialized.current = true;
     }
@@ -115,6 +117,15 @@ export default function ReceipeForm({
               className="form-control"
               required
               {...register("title")}
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for="link">Link</Label>
+            <input
+              id="link"
+              type="href"
+              className="form-control"
+              {...register("link")}
             />
           </FormGroup>
           <FormGroup>

@@ -55,19 +55,10 @@ async function updateRecipe(request: HttpRequest, context: Context) {
   const body = request.body as any;
 
   const container = await getContainer();
-  await container.item(id).patch({
-    operations: [
-      {
-        op: "replace",
-        path: "/title",
-        value: body.title,
-      },
-      {
-        op: "replace",
-        path: "/notes",
-        value: body.notes,
-      },
-    ],
+  const { resource: originalRecipe } = await container.item(id).read();
+  await container.item(id).replace({
+    ...originalRecipe,
+    ...body,
   });
 }
 

@@ -1,7 +1,7 @@
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { Card, CardBody, CardTitle, CardText } from "reactstrap";
+import { Card, CardBody, CardTitle, CardText, CardFooter } from "reactstrap";
 import { RecipesData } from "../models/recipesData";
 import { buildRoute } from "./buildRoute";
 import DeleteRecipe from "./DeleteRecipe";
@@ -39,6 +39,11 @@ export default function ReceipeList() {
               </div>
             </CardTitle>
             <CardText>{r.notes}</CardText>
+            {r.link ? (
+              <CardFooter>
+                <a href={r.link}>View</a>
+              </CardFooter>
+            ) : null}
           </CardBody>
         </Card>
       ))}
