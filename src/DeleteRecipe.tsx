@@ -11,7 +11,7 @@ type MutationResult = {
   previousRecipes: RecipesData;
 };
 
-export default function DeleteRecipe({ id }: { id: string }) {
+export default function DeleteRecipe({ recipeId }: { recipeId: string }) {
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   const queryClient = useQueryClient();
@@ -66,7 +66,7 @@ export default function DeleteRecipe({ id }: { id: string }) {
               color="primary"
               className="mr-3"
               onClick={() => {
-                mutation.mutate(id);
+                mutation.mutate(recipeId);
                 setShowConfirmation(false);
               }}
             >

@@ -5,6 +5,7 @@ import { Card, CardBody, CardTitle, CardText } from "reactstrap";
 import { RecipesData } from "../models/recipesData";
 import { buildRoute } from "./buildRoute";
 import DeleteRecipe from "./DeleteRecipe";
+import EditRecipe from "./EditRecipe";
 import IconButton from "./IconButton";
 
 export default function ReceipeList() {
@@ -32,10 +33,8 @@ export default function ReceipeList() {
               <div className="d-flex justify-content-between">
                 <div>{r.title}</div>
                 <div>
-                  <IconButton>
-                    <FontAwesomeIcon icon={faEdit} title="Edit Receipt" />
-                  </IconButton>
-                  <DeleteRecipe id={r.id} />
+                  <EditRecipe recipeId={r.id} />
+                  <DeleteRecipe recipeId={r.id} />
                 </div>
               </div>
             </CardTitle>

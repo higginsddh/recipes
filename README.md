@@ -18,3 +18,22 @@ Commands:
 api: yarn watch
 root: yarn start
 root: yarn start-server
+
+Plan:
+
+- Edit Form
+- Images
+- Tags
+- Ingredients
+- Search
+- Shopping List
+  - Basic List
+  - Checkboxes on items
+  - Sort by category
+  - Allow moving around
+- Weekly Planner
+  - Add recipes
+  - Add restaurants
+  - Generate shopping list
+- Integrate Restaurants
+  - Combine reviews + to try
