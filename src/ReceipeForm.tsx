@@ -48,22 +48,20 @@ export default function ReceipeForm({
   const { register, handleSubmit, reset } = useForm<FormPayload>();
   const queryClient = useQueryClient();
 
-  const {
-    isLoading,
-    error,
-    data: defaultRecipeData,
-  } = useQuery<Recipe>(["recipes", recipeId], () => {
-    if (recipeId) {
-      return fetch(buildRoute(`/api/recipes/${recipeId}`)).then((res) =>
-        res.json()
-      );
-    } else {
-      return Promise.resolve({
-        title: "",
-        notes: "",
-      } as Recipe);
+  const { data: defaultRecipeData } = useQuery<Recipe>(
+    ["recipes", recipeId],
+    async () => {
+      if (recipeId) {
+        const res = await fetch(buildRoute(`/api/recipes/${recipeId}`));
+        return await res.json();
+      } else {
+        return Promise.resolve({
+          title: "",
+          notes: "",
+        } as Recipe);
+      }
     }
-  });
+  );
 
   const hasFormInitialized = useRef(false);
 
@@ -81,7 +79,7 @@ export default function ReceipeForm({
     async (recipe: FormPayload) => {
       let response;
       if (recipeId) {
-        response = await patchData("/api/recipes", recipe);
+        response = await patchData(`/api/recipes/${recipeId}`, recipe);
       } else {
         response = await postData("/api/recipes", recipe);
       }

@@ -6,7 +6,6 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   context.log("HTTP trigger function processed a request.");
-
   switch (req.method) {
     case "GET":
       await getRecipes(req, context);
@@ -33,11 +32,11 @@ export default httpTrigger;
 async function getRecipes(request: HttpRequest, context: Context) {
   const container = await getContainer();
 
-  const id = request.query["id"];
+  const id = request.params.id;
   if (id) {
     const recipe = await container.item(id).read();
     context.res = {
-      body: recipe,
+      body: recipe.resource,
     };
   } else {
     const { resources: recipes } = await container.items
@@ -52,7 +51,7 @@ async function getRecipes(request: HttpRequest, context: Context) {
 }
 
 async function updateRecipe(request: HttpRequest, context: Context) {
-  const id = request.query["id"];
+  const id = request.params.id;
   const body = request.body as any;
 
   const container = await getContainer();

@@ -10,7 +10,8 @@ export default function IconButton({
   return (
     <button
       type="button"
-      style={{ border: 0, backgroundColor: "transparent" }}
+      className="btn btn-link"
+      style={{ border: 0, backgroundColor: "transparent", padding: 0 }}
       onClick={onClick}
     >
       {children}

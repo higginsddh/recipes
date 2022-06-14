@@ -53,7 +53,7 @@ export default function DeleteRecipe({ recipeId }: { recipeId: string }) {
         <FontAwesomeIcon
           icon={faTrash}
           title="Delete Receipt"
-          className="ms-3"
+          className="ps-3"
           onClick={() => setShowConfirmation(true)}
         />
       </IconButton>
