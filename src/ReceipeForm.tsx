@@ -7,11 +7,13 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
+  Spinner,
 } from "reactstrap";
 import { useForm } from "react-hook-form";
 import { buildRoute } from "./buildRoute";
 import { Recipe } from "../models/recipe";
 import { useEffect, useRef } from "react";
+import FullPageSpinner from "./FullPageSpinner";
 
 type FormPayload = {
   title: string;
@@ -49,7 +51,7 @@ export default function ReceipeForm({
   const { register, handleSubmit, reset } = useForm<FormPayload>();
   const queryClient = useQueryClient();
 
-  const { data: defaultRecipeData } = useQuery<Recipe>(
+  const { isLoading, data: defaultRecipeData } = useQuery<Recipe>(
     ["recipes", recipeId],
     async () => {
       if (recipeId) {
@@ -67,7 +69,7 @@ export default function ReceipeForm({
   const hasFormInitialized = useRef(false);
 
   useEffect(() => {
-    if (!hasFormInitialized.current) {
+    if (!hasFormInitialized.current && !isLoading) {
       reset({
         title: defaultRecipeData?.title ?? "",
         notes: defaultRecipeData?.notes ?? "",
@@ -75,9 +77,9 @@ export default function ReceipeForm({
       });
       hasFormInitialized.current = true;
     }
-  }, [defaultRecipeData]);
+  }, [defaultRecipeData, isLoading]);
 
-  const mutation = useMutation(
+  const { mutate, isLoading: mutateIsSaving } = useMutation(
     async (recipe: FormPayload) => {
       let response;
       if (recipeId) {
@@ -99,54 +101,59 @@ export default function ReceipeForm({
     }
   );
 
+  if (isLoading) {
+    return <FullPageSpinner />;
+  }
+
   return (
-    <Modal isOpen={true}>
-      <ModalHeader>Recipe</ModalHeader>
-      <ModalBody>
-        <form
-          onSubmit={handleSubmit((data) => mutation.mutate(data))}
-          id="modalForm"
-        >
-          <FormGroup>
-            <Label for="title" className="required">
-              Title
-            </Label>
-            <input
-              id="title"
-              type="text"
-              className="form-control"
-              required
-              {...register("title")}
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="link">Link</Label>
-            <input
-              id="link"
-              type="href"
-              className="form-control"
-              {...register("link")}
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="notes">Notes</Label>
-            <input
-              id="notes"
-              type="textarea"
-              className="form-control"
-              {...register("notes")}
-            />
-          </FormGroup>
-        </form>
-      </ModalBody>
-      <ModalFooter>
-        <Button type="submit" color="primary" form="modalForm">
-          Save
-        </Button>
-        <Button type="button" color="secondary" onClick={() => onClose()}>
-          Cancel
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <>
+      {mutateIsSaving ? <FullPageSpinner /> : null}
+
+      <Modal isOpen={true}>
+        <ModalHeader>Recipe</ModalHeader>
+        <ModalBody>
+          <form onSubmit={handleSubmit((data) => mutate(data))} id="modalForm">
+            <FormGroup>
+              <Label for="title" className="required">
+                Title
+              </Label>
+              <input
+                id="title"
+                type="text"
+                className="form-control"
+                required
+                {...register("title")}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="link">Link</Label>
+              <input
+                id="link"
+                type="href"
+                className="form-control"
+                {...register("link")}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="notes">Notes</Label>
+              <input
+                id="notes"
+                type="textarea"
+                className="form-control"
+                {...register("notes")}
+              />
+            </FormGroup>
+          </form>
+        </ModalBody>
+        <ModalFooter>
+          <Button type="submit" color="primary" form="modalForm">
+            Save
+          </Button>
+          <Button type="button" color="secondary" onClick={() => onClose()}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </>
   );
 }

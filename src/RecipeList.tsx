@@ -1,22 +1,18 @@
-import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 import { Card, CardBody, CardTitle, CardText, CardFooter } from "reactstrap";
 import { RecipesData } from "../models/recipesData";
 import { buildRoute } from "./buildRoute";
 import DeleteRecipe from "./DeleteRecipe";
 import EditRecipe from "./EditRecipe";
-import IconButton from "./IconButton";
+import FullPageSpinner from "./FullPageSpinner";
 
 export default function ReceipeList() {
   const { isLoading, error, data } = useQuery<RecipesData>("recipes", () =>
     fetch(buildRoute("/api/recipes")).then((res) => res.json())
   );
 
-  const queryClient = useQueryClient();
-
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <FullPageSpinner />;
   }
 
   if (error) {
