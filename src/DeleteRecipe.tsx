@@ -49,12 +49,11 @@ export default function DeleteRecipe({ recipeId }: { recipeId: string }) {
 
   return (
     <>
-      <IconButton>
+      <IconButton onClick={() => setShowConfirmation(true)}>
         <FontAwesomeIcon
           icon={faTrash}
           title="Delete Receipt"
           className="ps-3"
-          onClick={() => setShowConfirmation(true)}
         />
       </IconButton>
       {showConfirmation ? (

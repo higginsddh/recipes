@@ -4,7 +4,7 @@ export default function IconButton({
   onClick,
   children,
 }: {
-  onClick?: () => void;
+  onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
@@ -12,7 +12,7 @@ export default function IconButton({
       type="button"
       className="btn btn-link"
       style={{ border: 0, backgroundColor: "transparent", padding: 0 }}
-      onClick={onClick}
+      onClick={() => onClick()}
     >
       {children}
     </button>

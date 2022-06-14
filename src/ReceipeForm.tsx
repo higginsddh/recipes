@@ -129,7 +129,7 @@ export default function ReceipeForm({
               <Label for="link">Link</Label>
               <input
                 id="link"
-                type="href"
+                type="url"
                 className="form-control"
                 {...register("link")}
               />

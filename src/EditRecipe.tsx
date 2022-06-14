@@ -9,12 +9,8 @@ export default function EditRecipe({ recipeId }: { recipeId: string }) {
 
   return (
     <>
-      <IconButton>
-        <FontAwesomeIcon
-          icon={faEdit}
-          title="Edit Receipt"
-          onClick={() => setIsFormOpen(true)}
-        />
+      <IconButton onClick={() => setIsFormOpen(true)}>
+        <FontAwesomeIcon icon={faEdit} title="Edit Receipt" />
       </IconButton>
       {isFormOpen ? (
         <ReceipeForm recipeId={recipeId} onClose={() => setIsFormOpen(false)} />
