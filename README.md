@@ -19,10 +19,15 @@ api: yarn watch
 root: yarn start
 root: yarn start-server
 
+Tech Debt:
+
+- Set CORS properties on blob storage
+- Add alert for blob storage usage
+- Delete removed files
+- File name collision
+
 Plan:
 
-- Edit Form
-- Images
 - Tags
 - Ingredients
 - Search

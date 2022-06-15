@@ -21,6 +21,7 @@ import { useEffect, useRef } from "react";
 import FullPageSpinner from "./FullPageSpinner";
 import { uuid } from "uuidv4";
 import { ContainerClient } from "@azure/storage-blob";
+import ImageBlobReduce from "image-blob-reduce";
 
 type FormPayload = {
   title: string;
@@ -206,16 +207,24 @@ function useUploadFileMutation(setValue: UseFormSetValue<FormPayload>) {
       const containerClient = new ContainerClient(connectionString);
 
       const file = files[0];
+
+      const reduce = new ImageBlobReduce();
+      const newBlob = await reduce.toBlob(file, { max: 1024 });
+
       const blockBlobClient = containerClient.getBlockBlobClient(file.name);
-      await blockBlobClient.uploadData(file, {
+      await blockBlobClient.uploadData(newBlob, {
         blobHTTPHeaders: {
           blobContentType: file.type,
         },
       });
-      return blockBlobClient.url;
+      return removeSasToken(blockBlobClient.url);
     },
     {
       onSuccess: (r) => setValue("picture", r),
     }
   );
+}
+
+function removeSasToken(input: string) {
+  return input.split("?")[0];
 }
