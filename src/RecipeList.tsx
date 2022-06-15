@@ -34,21 +34,23 @@ export default function ReceipeList() {
                 </div>
               </div>
             </CardTitle>
-            <CardText>
-              {r.notes}
-              <br />
+            <div className="card-text">
+              <div>{r.notes}</div>
               {r.link ? (
-                <a href={r.link} target="_blank">
-                  Linked recipe
-                </a>
+                <div>
+                  <a href={r.link} target="_blank">
+                    Linked recipe
+                  </a>
+                </div>
               ) : null}
-              <br />
-              {r.picture ? (
-                <a href={r.picture} target="_blank">
-                  Picture
-                </a>
-              ) : null}
-            </CardText>
+              {(r.files ?? []).map((file) => (
+                <div key={file.id}>
+                  <a href={file.url} target="_blank">
+                    Picture
+                  </a>
+                </div>
+              ))}
+            </div>
           </CardBody>
         </Card>
       ))}

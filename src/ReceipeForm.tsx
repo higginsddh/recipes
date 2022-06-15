@@ -17,17 +17,17 @@ import {
 import { useForm, UseFormSetValue } from "react-hook-form";
 import { buildRoute } from "./buildRoute";
 import { Recipe } from "../models/recipe";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import FullPageSpinner from "./FullPageSpinner";
-import { uuid } from "uuidv4";
+import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
 import ImageBlobReduce from "image-blob-reduce";
+import { UploadedFile } from "../models/uploadedFile";
 
-type FormPayload = {
+type FormFields = {
   title: string;
   notes: string;
   link: string;
-  picture: string;
 };
 
 async function postData(url = "", data = {}) {
@@ -57,7 +57,9 @@ export default function ReceipeForm({
   recipeId?: string;
   onClose: () => void;
 }) {
-  const { register, handleSubmit, reset, setValue } = useForm<FormPayload>();
+  const { register, handleSubmit, reset } = useForm<FormFields>();
+  const [files, setFiles] = useState<Array<UploadedFile>>([]);
+
   const queryClient = useQueryClient();
 
   const { isLoading, data: defaultRecipeData } = useQuery<Recipe>(
@@ -84,6 +86,7 @@ export default function ReceipeForm({
         notes: defaultRecipeData?.notes ?? "",
         link: defaultRecipeData?.link ?? "",
       });
+      setFiles(defaultRecipeData?.files ?? []);
       hasFormInitialized.current = true;
     }
   }, [defaultRecipeData, isLoading]);
@@ -95,7 +98,7 @@ export default function ReceipeForm({
   );
 
   const { mutate: uploadFile, isLoading: fileIsSaving } =
-    useUploadFileMutation(setValue);
+    useUploadFileMutation(setFiles);
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -142,8 +145,29 @@ export default function ReceipeForm({
                 {...register("notes")}
               />
             </FormGroup>
+            {files.map((f) => (
+              <FormGroup key={f.id}>
+                <div>
+                  <img src={f.url} width="400px" />
+                </div>
+                <Button
+                  type="button"
+                  className="mt-2"
+                  size="sm"
+                  onClick={() =>
+                    setFiles((existingFiles) =>
+                      existingFiles.filter(
+                        (existingFile) => existingFile.id !== f.id
+                      )
+                    )
+                  }
+                >
+                  Delete
+                </Button>
+              </FormGroup>
+            ))}
             <FormGroup>
-              <Label for="picture">Picture</Label>
+              <Label for="picture">Add Photo</Label>
               <input
                 id="picture"
                 type="file"
@@ -173,7 +197,7 @@ function useGetSaveMutation(
   onClose: () => void
 ): { mutate: any; isLoading: any } {
   return useMutation(
-    async (recipe: FormPayload) => {
+    async (recipe: FormFields & { files: Array<UploadedFile> }) => {
       let response;
       if (recipeId) {
         response = await patchData(`/api/recipes/${recipeId}`, recipe);
@@ -195,7 +219,9 @@ function useGetSaveMutation(
   );
 }
 
-function useUploadFileMutation(setValue: UseFormSetValue<FormPayload>) {
+function useUploadFileMutation(
+  setFiles: React.Dispatch<React.SetStateAction<Array<UploadedFile>>>
+) {
   return useMutation(
     async (files: FileList) => {
       const { connectionString } = (await fetch("/api/FileUploadPath").then(
@@ -220,7 +246,14 @@ function useUploadFileMutation(setValue: UseFormSetValue<FormPayload>) {
       return removeSasToken(blockBlobClient.url);
     },
     {
-      onSuccess: (r) => setValue("picture", r),
+      onSuccess: (uploadedUrl) =>
+        setFiles((f) => [
+          ...f,
+          {
+            id: uuidv4(),
+            url: uploadedUrl,
+          },
+        ]),
     }
   );
 }
