@@ -5,7 +5,7 @@ export default function FullPageSpinner() {
         <div
           className="spinner-grow text-primary"
           role="status"
-          style={{ width: "3rem", height: "3rem", zIndex: 20 }}
+          style={{ width: "3rem", height: "3rem", zIndex: 10000 }}
         >
           <span className="sr-only">Loading...</span>
         </div>

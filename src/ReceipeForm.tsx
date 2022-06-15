@@ -59,6 +59,7 @@ export default function ReceipeForm({
 }) {
   const { register, handleSubmit, reset } = useForm<FormFields>();
   const [files, setFiles] = useState<Array<UploadedFile>>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
@@ -97,8 +98,10 @@ export default function ReceipeForm({
     onClose
   );
 
-  const { mutate: uploadFile, isLoading: fileIsSaving } =
-    useUploadFileMutation(setFiles);
+  const { mutate: uploadFile, isLoading: fileIsSaving } = useUploadFileMutation(
+    setFiles,
+    fileRef
+  );
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -112,7 +115,12 @@ export default function ReceipeForm({
         <ModalHeader>Recipe</ModalHeader>
         <ModalBody>
           <form
-            onSubmit={handleSubmit((data) => saveForm(data))}
+            onSubmit={handleSubmit((data) =>
+              saveForm({
+                ...data,
+                files,
+              })
+            )}
             id="modalForm"
           >
             <FormGroup>
@@ -172,6 +180,7 @@ export default function ReceipeForm({
                 id="picture"
                 type="file"
                 className="form-control"
+                ref={fileRef}
                 onChange={(e) => {
                   uploadFile((e as any).target.files);
                 }}
@@ -220,7 +229,8 @@ function useGetSaveMutation(
 }
 
 function useUploadFileMutation(
-  setFiles: React.Dispatch<React.SetStateAction<Array<UploadedFile>>>
+  setFiles: React.Dispatch<React.SetStateAction<Array<UploadedFile>>>,
+  fileRef: React.RefObject<HTMLInputElement>
 ) {
   return useMutation(
     async (files: FileList) => {
@@ -254,6 +264,12 @@ function useUploadFileMutation(
             url: uploadedUrl,
           },
         ]),
+
+      onSettled: () => {
+        if (fileRef?.current) {
+          fileRef.current.value = "";
+        }
+      },
     }
   );
 }
