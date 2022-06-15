@@ -34,12 +34,21 @@ export default function ReceipeList() {
                 </div>
               </div>
             </CardTitle>
-            <CardText>{r.notes}</CardText>
-            {r.link ? (
-              <CardFooter>
-                <a href={r.link}>View</a>
-              </CardFooter>
-            ) : null}
+            <CardText>
+              {r.notes}
+              <br />
+              {r.link ? (
+                <a href={r.link} target="_blank">
+                  Linked recipe
+                </a>
+              ) : null}
+              <br />
+              {r.picture ? (
+                <a href={r.picture} target="_blank">
+                  Picture
+                </a>
+              ) : null}
+            </CardText>
           </CardBody>
         </Card>
       ))}

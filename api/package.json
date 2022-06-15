@@ -10,7 +10,8 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/cosmos": "^3.16.1"
+    "@azure/cosmos": "^3.16.1",
+    "@azure/storage-blob": "^12.10.0"
   },
   "devDependencies": {
     "@azure/functions": "^2.0.0",

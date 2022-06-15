@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "react-query";
 import {
   Button,
   FormGroup,
@@ -9,16 +14,19 @@ import {
   ModalHeader,
   Spinner,
 } from "reactstrap";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormSetValue } from "react-hook-form";
 import { buildRoute } from "./buildRoute";
 import { Recipe } from "../models/recipe";
 import { useEffect, useRef } from "react";
 import FullPageSpinner from "./FullPageSpinner";
+import { uuid } from "uuidv4";
+import { ContainerClient } from "@azure/storage-blob";
 
 type FormPayload = {
   title: string;
   notes: string;
   link: string;
+  picture: string;
 };
 
 async function postData(url = "", data = {}) {
@@ -48,7 +56,7 @@ export default function ReceipeForm({
   recipeId?: string;
   onClose: () => void;
 }) {
-  const { register, handleSubmit, reset } = useForm<FormPayload>();
+  const { register, handleSubmit, reset, setValue } = useForm<FormPayload>();
   const queryClient = useQueryClient();
 
   const { isLoading, data: defaultRecipeData } = useQuery<Recipe>(
@@ -79,27 +87,14 @@ export default function ReceipeForm({
     }
   }, [defaultRecipeData, isLoading]);
 
-  const { mutate, isLoading: mutateIsSaving } = useMutation(
-    async (recipe: FormPayload) => {
-      let response;
-      if (recipeId) {
-        response = await patchData(`/api/recipes/${recipeId}`, recipe);
-      } else {
-        response = await postData("/api/recipes", recipe);
-      }
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries("recipes");
-        onClose();
-      },
-      onError: (e) => console.error(JSON.stringify(e)),
-    }
+  const { mutate: saveForm, isLoading: mutateIsSaving } = useGetSaveMutation(
+    recipeId,
+    queryClient,
+    onClose
   );
+
+  const { mutate: uploadFile, isLoading: fileIsSaving } =
+    useUploadFileMutation(setValue);
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -107,12 +102,15 @@ export default function ReceipeForm({
 
   return (
     <>
-      {mutateIsSaving ? <FullPageSpinner /> : null}
+      {mutateIsSaving || fileIsSaving ? <FullPageSpinner /> : null}
 
       <Modal isOpen={true}>
         <ModalHeader>Recipe</ModalHeader>
         <ModalBody>
-          <form onSubmit={handleSubmit((data) => mutate(data))} id="modalForm">
+          <form
+            onSubmit={handleSubmit((data) => saveForm(data))}
+            id="modalForm"
+          >
             <FormGroup>
               <Label for="title" className="required">
                 Title
@@ -143,6 +141,17 @@ export default function ReceipeForm({
                 {...register("notes")}
               />
             </FormGroup>
+            <FormGroup>
+              <Label for="picture">Picture</Label>
+              <input
+                id="picture"
+                type="file"
+                className="form-control"
+                onChange={(e) => {
+                  uploadFile((e as any).target.files);
+                }}
+              />
+            </FormGroup>
           </form>
         </ModalBody>
         <ModalFooter>
@@ -155,5 +164,58 @@ export default function ReceipeForm({
         </ModalFooter>
       </Modal>
     </>
+  );
+}
+function useGetSaveMutation(
+  recipeId: string | undefined,
+  queryClient: QueryClient,
+  onClose: () => void
+): { mutate: any; isLoading: any } {
+  return useMutation(
+    async (recipe: FormPayload) => {
+      let response;
+      if (recipeId) {
+        response = await patchData(`/api/recipes/${recipeId}`, recipe);
+      } else {
+        response = await postData("/api/recipes", recipe);
+      }
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("recipes");
+        onClose();
+      },
+      onError: (e) => console.error(JSON.stringify(e)),
+    }
+  );
+}
+
+function useUploadFileMutation(setValue: UseFormSetValue<FormPayload>) {
+  return useMutation(
+    async (files: FileList) => {
+      const { connectionString } = (await fetch("/api/FileUploadPath").then(
+        (r) => r.json()
+      )) as {
+        connectionString: string;
+      };
+
+      const containerClient = new ContainerClient(connectionString);
+
+      const file = files[0];
+      const blockBlobClient = containerClient.getBlockBlobClient(file.name);
+      await blockBlobClient.uploadData(file, {
+        blobHTTPHeaders: {
+          blobContentType: file.type,
+        },
+      });
+      return blockBlobClient.url;
+    },
+    {
+      onSuccess: (r) => setValue("picture", r),
+    }
   );
 }
