@@ -109,11 +109,10 @@ export default function ReceipeForm({
 
   return (
     <>
-      {mutateIsSaving || fileIsSaving ? <FullPageSpinner /> : null}
-
       <Modal isOpen={true}>
         <ModalHeader>Recipe</ModalHeader>
         <ModalBody>
+          {mutateIsSaving || fileIsSaving ? <FullPageSpinner /> : null}
           <form
             onSubmit={handleSubmit((data) =>
               saveForm({
