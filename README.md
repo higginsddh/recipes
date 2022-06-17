@@ -9,6 +9,8 @@ https://docs.microsoft.com/en-us/javascript/api/overview/azure/cosmos-readme
 https://docs.microsoft.com/en-us/azure/static-web-apps/build-configuration?tabs=github-actions#build-and-deploy
 https://docs.microsoft.com/en-us/azure/static-web-apps/add-api
 
+Azure Search: https://docs.microsoft.com/en-us/azure/search/search-howto-index-cosmosdb
+
 yarn start-server starts the API proxy
 first need to build files into /dist folder
 
@@ -25,6 +27,8 @@ Tech Debt:
 - Add alert for blob storage usage
 - Delete removed files
 - File name collision
+- Don't process already existing files with OCR
+- Move OCR text to separate object
 
 Plan:
 
