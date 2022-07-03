@@ -3,12 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation, useQueryClient } from "react-query";
 import { buildRoute } from "./buildRoute";
 import IconButton from "./IconButton";
-import { RecipesData } from "../models/recipesData";
+import { Recipe } from "../models/recipe";
 import { useState } from "react";
 import { Button, Modal, ModalBody, ModalFooter } from "reactstrap";
 
 type MutationResult = {
-  previousRecipes: RecipesData;
+  previousRecipes: Array<Recipe>;
 };
 
 export default function DeleteRecipe({ recipeId }: { recipeId: string }) {
@@ -28,11 +28,12 @@ export default function DeleteRecipe({ recipeId }: { recipeId: string }) {
 
         const previousRecipes = queryClient.getQueriesData(
           "recipes"
-        ) as unknown as RecipesData;
+        ) as unknown as Array<Recipe>;
 
-        queryClient.setQueryData<RecipesData>("recipes", (old) => ({
-          recipes: old?.recipes.filter((r) => r.id !== id) ?? [],
-        }));
+        queryClient.setQueryData<Array<Recipe>>(
+          "recipes",
+          (old) => old?.filter((r) => r.id !== id) ?? []
+        );
 
         return { previousRecipes } as MutationResult;
       },
