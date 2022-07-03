@@ -67,6 +67,8 @@ function useDeleteReceipe(queryClient: QueryClient) {
           "recipes",
           (old) => ({ recipes: old?.recipes.filter((r) => r.id !== id) ?? [] })
         );
+
+        return { previousRecipes };
       },
 
       onSuccess: () => {

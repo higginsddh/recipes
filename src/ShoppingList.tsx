@@ -6,6 +6,7 @@ import { buildRoute } from "./buildRoute";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import FullPageSpinner from "./FullPageSpinner";
 import ShoppingListItemCreate from "./ShoppingListItemCreate";
+import ShoppingListItemRow from "./ShoppingListItemRow";
 
 export default function ShoppingList() {
   const {
@@ -32,23 +33,7 @@ export default function ShoppingList() {
       <ShoppingListItemCreate />
 
       {data.shoppingListItems.map((i) => (
-        <div className="input-group mb-3" key={i.id}>
-          <div className="input-group-text">
-            <input
-              className="form-check-input mt-0"
-              type="checkbox"
-              value=""
-              aria-label="Checkbox for following text input"
-            />
-          </div>
-          <Input value={i.name} />
-          <Button color="secondary" type="button" className="me-3">
-            <FontAwesomeIcon icon={faCheck} />
-          </Button>
-          <Button color="secondary" type="button">
-            <FontAwesomeIcon icon={faTrash} />
-          </Button>
-        </div>
+        <ShoppingListItemRow shoppingListItem={i} key={i.id} />
       ))}
     </div>
   );
