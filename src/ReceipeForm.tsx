@@ -25,32 +25,13 @@ import { UploadedFile } from "../models/uploadedFile";
 
 import { Typeahead } from "react-bootstrap-typeahead";
 import "react-bootstrap-typeahead/css/Typeahead.css";
+import { patchData, postData } from "./services/httpUtilities";
 
 type FormFields = {
   title: string;
   notes: string;
   link: string;
 };
-
-async function postData(url = "", data = {}) {
-  return await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-}
-
-async function patchData(url = "", data = {}) {
-  return await fetch(url, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-}
 
 export default function ReceipeForm({
   recipeId,

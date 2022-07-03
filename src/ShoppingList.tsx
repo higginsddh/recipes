@@ -1,29 +1,38 @@
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useQuery } from "react-query";
 import { Button, Input } from "reactstrap";
+import { buildRoute } from "./buildRoute";
+import { ShoppingListItem } from "../models/shoppingListItem";
+import FullPageSpinner from "./FullPageSpinner";
+import ShoppingListItemCreate from "./ShoppingListItemCreate";
 
 export default function ShoppingList() {
-  const items = [
-    {
-      id: "i-1",
-      text: "Apples",
-    },
-    {
-      id: "i-2",
-      text: "Bananas",
-    },
-  ];
+  const {
+    isLoading,
+    error,
+    data: data,
+  } = useQuery<{
+    shoppingListItems: Array<ShoppingListItem>;
+  }>("shoppingListItems", () =>
+    fetch(buildRoute("/api/shoppingListItem")).then((res) => res.json())
+  );
+
+  if (isLoading) {
+    return <FullPageSpinner />;
+  }
+
+  if (error || !data) {
+    console.error(error);
+    return <div>An error has occurred</div>;
+  }
+
   return (
     <div>
-      <div className="input-group">
-        <Input placeholder="Add item..." />
-        <Button color="secondary">
-          <FontAwesomeIcon icon={faPlus} />
-        </Button>
-      </div>
+      <ShoppingListItemCreate />
 
-      {items.map((i) => (
-        <div className="input-group">
+      {data.shoppingListItems.map((i) => (
+        <div className="input-group mb-3" key={i.id}>
           <div className="input-group-text">
             <input
               className="form-check-input mt-0"
@@ -32,9 +41,12 @@ export default function ShoppingList() {
               aria-label="Checkbox for following text input"
             />
           </div>
-          <Input placeholder="Add item..." />
-          <Button color="secondary">
-            <FontAwesomeIcon icon={faPlus} />
+          <Input value={i.name} />
+          <Button color="secondary" type="button" className="me-3">
+            <FontAwesomeIcon icon={faCheck} />
+          </Button>
+          <Button color="secondary" type="button">
+            <FontAwesomeIcon icon={faTrash} />
           </Button>
         </div>
       ))}
