@@ -102,15 +102,10 @@ export default function ReceipeForm({
     return <FullPageSpinner />;
   }
 
-  const availableTags = [
-    ...(tags ?? []),
-    ...selectedTags.filter((st) => !tags?.some((t) => t.name === st.name)),
-  ];
-
   return (
     <>
-      <Modal isOpen={true}>
-        <ModalHeader>Recipe</ModalHeader>
+      <Modal isOpen={true} scrollable>
+        <ModalHeader toggle={() => onClose()}>Recipe</ModalHeader>
         <ModalBody>
           {mutateIsSaving || fileIsSaving ? <FullPageSpinner /> : null}
           <form
@@ -142,6 +137,7 @@ export default function ReceipeForm({
                 allowNew
                 multiple
                 options={tags?.map((t) => t.name) ?? []}
+                defaultSelected={(selectedTags ?? []).map((t) => t.name)}
                 onChange={(e) => {
                   setSelectedTags(
                     e.map((t) => ({
@@ -172,7 +168,7 @@ export default function ReceipeForm({
             {files.map((f) => (
               <FormGroup key={f.id}>
                 <div>
-                  <img src={f.url} width="400px" />
+                  <img src={f.url} width="250px" />
                 </div>
                 <Button
                   type="button"

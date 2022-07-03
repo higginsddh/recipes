@@ -59,7 +59,7 @@ export default function ReceipeList({
                       </div>
                     ) : null}
                   </div>
-                  <div>
+                  <div className="d-flex flex-nowrap align-items-start">
                     <EditRecipe recipeId={r.id} />
                     <DeleteRecipe recipeId={r.id} />
                   </div>

@@ -62,13 +62,15 @@ async function updateRecipe(request: HttpRequest, context: Context) {
   const id = request.params.id;
   const body = request.body as any;
 
-  const fileSearchTerms = await readTextFromImages(body);
-
   const container = await getContainer();
+  const { resource: originalRecipe } = await container.item(id).read();
+
+  const fileSearchTerms = await readTextFromImages(
+    body as CosmosRecipe,
+    originalRecipe as CosmosRecipe
+  );
 
   await updateTags(container, body);
-
-  const { resource: originalRecipe } = await container.item(id).read();
 
   await container.item(id).replace({
     ...originalRecipe,
@@ -119,8 +121,8 @@ async function updateTags(
       (newTag) =>
         !tags.some(
           (oldTag) =>
-            newTag.name.trim().toLowerCase() ===
-            oldTag.name.trim().toLowerCase()
+            (newTag?.name ?? "").trim().toLowerCase() ===
+            (oldTag?.name ?? "").trim().toLowerCase()
         )
     )
     .map((t) => t.name);
@@ -133,15 +135,26 @@ async function updateTags(
   }
 }
 
-async function readTextFromImages(body: any): Promise<Array<FileSearchTerm>> {
-  if (!body.files) {
+async function readTextFromImages(
+  newRecipe: CosmosRecipe,
+  originalRecipe?: CosmosRecipe
+): Promise<Array<FileSearchTerm>> {
+  if (!newRecipe.files) {
     console.warn("files not set");
     return [];
   }
 
-  if (body.files.length === 0) {
+  if (newRecipe.files.length === 0) {
     return [];
   }
+
+  const newFiles = newRecipe.files.filter(
+    (newRecipeFile) =>
+      !originalRecipe ||
+      !originalRecipe.files.some(
+        (originalRecipeFile) => originalRecipeFile.id === newRecipeFile.id
+      )
+  );
 
   const computerVisionClient = new ComputerVisionClient(
     new ApiKeyCredentials({
@@ -152,8 +165,10 @@ async function readTextFromImages(body: any): Promise<Array<FileSearchTerm>> {
     process.env.COMPUTER_VISION_URL
   );
 
-  for (let i = 0; i < body.files.length; i++) {
-    const result = await computerVisionClient.read(body.files[i].url);
+  console.log(`processing ${newFiles.length} file(s)`);
+
+  for (let i = 0; i < newFiles.length; i++) {
+    const result = await computerVisionClient.read(newFiles[i].url);
     const operation = result.operationLocation.split("/").slice(-1)[0];
 
     let operationResult = await computerVisionClient.getReadResult(operation);
@@ -171,7 +186,7 @@ async function readTextFromImages(body: any): Promise<Array<FileSearchTerm>> {
         r.lines.map(
           (l) =>
             ({
-              fileId: body.files[i].id,
+              fileId: newFiles[i].id,
               text: l.text,
             } as FileSearchTerm)
         )
