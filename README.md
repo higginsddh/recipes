@@ -11,6 +11,8 @@ https://docs.microsoft.com/en-us/azure/static-web-apps/add-api
 
 Azure Search: https://docs.microsoft.com/en-us/azure/search/search-howto-index-cosmosdb
 
+TypeScript mono: https://stackoverflow.com/questions/60896829/monorepo-with-rootdirs-produces-unwanted-sudirectories-such-as-src-in-outdi
+
 yarn start-server starts the API proxy
 first need to build files into /dist folder
 

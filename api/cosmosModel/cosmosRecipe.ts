@@ -1,3 +1,4 @@
+import { CosmosBase } from "./cosmosBase";
 import { FileSearchTerm } from "./fileSearchTerm";
 
 export type CosmosRecipe = {
@@ -5,4 +6,4 @@ export type CosmosRecipe = {
   notes: string;
   files?: Array<{ url: string; id: string }>;
   fileSearchTerms?: Array<FileSearchTerm>;
-};
+} & CosmosBase;

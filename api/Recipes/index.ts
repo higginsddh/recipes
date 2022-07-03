@@ -5,6 +5,7 @@ import { ApiKeyCredentials } from "@azure/ms-rest-js";
 import { promisify } from "util";
 import { FileSearchTerm } from "../cosmosModel/fileSearchTerm";
 import { CosmosRecipe } from "../cosmosModel/cosmosRecipe";
+import { Container } from "@azure/cosmos";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -44,9 +45,11 @@ async function getRecipes(request: HttpRequest, context: Context) {
       body: recipe.resource,
     };
   } else {
-    const { resources: recipes } = await container.items
-      .query("SELECT * FROM c")
+    const { resources } = await container.items
+      .query("SELECT * FROM c WHERE c.type = 'recipe'")
       .fetchAll();
+
+    const recipes = resources as Array<CosmosRecipe>;
 
     const data = { recipes };
     context.res = {
@@ -62,7 +65,11 @@ async function updateRecipe(request: HttpRequest, context: Context) {
   const fileSearchTerms = await readTextFromImages(body);
 
   const container = await getContainer();
+
+  await updateTags(container, body);
+
   const { resource: originalRecipe } = await container.item(id).read();
+
   await container.item(id).replace({
     ...originalRecipe,
     ...body,
@@ -85,10 +92,45 @@ async function createRecipe(request: HttpRequest, context: Context) {
   const fileSearchTerms = await readTextFromImages(body);
 
   const container = await getContainer();
+
+  await updateTags(container, body);
+
   await container.items.create({
     ...body,
+    type: "recipe",
     fileSearchTerms,
   });
+}
+
+async function updateTags(
+  container: Container,
+  body: { tags?: Array<{ name: string }> }
+) {
+  if (!body.tags) {
+    return;
+  }
+
+  const { resources: tags } = await container.items
+    .query("SELECT * FROM c WHERE c.type = 'tag'")
+    .fetchAll();
+
+  const missingTags = body.tags
+    .filter(
+      (newTag) =>
+        !tags.some(
+          (oldTag) =>
+            newTag.name.trim().toLowerCase() ===
+            oldTag.name.trim().toLowerCase()
+        )
+    )
+    .map((t) => t.name);
+
+  for (let missingTag in missingTags) {
+    await container.items.create({
+      type: "tag",
+      name: missingTags[missingTag],
+    });
+  }
 }
 
 async function readTextFromImages(body: any): Promise<Array<FileSearchTerm>> {

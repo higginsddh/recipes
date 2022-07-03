@@ -12,9 +12,8 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
-  Spinner,
 } from "reactstrap";
-import { useForm, UseFormSetValue } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { buildRoute } from "./buildRoute";
 import { Recipe } from "../models/recipe";
 import React, { useEffect, useRef, useState } from "react";
@@ -23,6 +22,9 @@ import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
 import ImageBlobReduce from "image-blob-reduce";
 import { UploadedFile } from "../models/uploadedFile";
+
+import { Typeahead } from "react-bootstrap-typeahead";
+import "react-bootstrap-typeahead/css/Typeahead.css";
 
 type FormFields = {
   title: string;
@@ -59,38 +61,31 @@ export default function ReceipeForm({
 }) {
   const { register, handleSubmit, reset } = useForm<FormFields>();
   const [files, setFiles] = useState<Array<UploadedFile>>([]);
+
+  const [selectedTags, setSelectedTags] = useState<Array<{ name: string }>>([]);
+
   const fileRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
-  const { isLoading, data: defaultRecipeData } = useQuery<Recipe>(
-    ["recipes", recipeId],
-    async () => {
-      if (recipeId) {
-        const res = await fetch(buildRoute(`/api/recipes/${recipeId}`));
-        return await res.json();
-      } else {
-        return Promise.resolve({
-          title: "",
-          notes: "",
-        } as Recipe);
-      }
-    }
-  );
+  const { isLoading: isLoadingRecipeData, data: defaultRecipeData } =
+    useLoadRecipeData(recipeId);
+  const { isLoading: isLoadingTags, data: tags } = useLoadTags();
 
   const hasFormInitialized = useRef(false);
 
   useEffect(() => {
-    if (!hasFormInitialized.current && !isLoading) {
+    if (!hasFormInitialized.current && !isLoadingRecipeData) {
       reset({
         title: defaultRecipeData?.title ?? "",
         notes: defaultRecipeData?.notes ?? "",
         link: defaultRecipeData?.link ?? "",
       });
       setFiles(defaultRecipeData?.files ?? []);
+      setSelectedTags(defaultRecipeData?.tags ?? []);
       hasFormInitialized.current = true;
     }
-  }, [defaultRecipeData, isLoading]);
+  }, [defaultRecipeData, isLoadingRecipeData]);
 
   const { mutate: saveForm, isLoading: mutateIsSaving } = useGetSaveMutation(
     recipeId,
@@ -103,9 +98,14 @@ export default function ReceipeForm({
     fileRef
   );
 
-  if (isLoading) {
+  if (isLoadingRecipeData || isLoadingTags) {
     return <FullPageSpinner />;
   }
+
+  const availableTags = [
+    ...(tags ?? []),
+    ...selectedTags.filter((st) => !tags?.some((t) => t.name === st.name)),
+  ];
 
   return (
     <>
@@ -118,6 +118,7 @@ export default function ReceipeForm({
               saveForm({
                 ...data,
                 files,
+                tags: selectedTags,
               })
             )}
             id="modalForm"
@@ -132,6 +133,23 @@ export default function ReceipeForm({
                 className="form-control"
                 required
                 {...register("title")}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="tags">Tags</Label>
+              <Typeahead
+                id="tags"
+                allowNew
+                multiple
+                options={tags?.map((t) => t.name) ?? []}
+                onChange={(e) => {
+                  console.log(e.map((t) => (t as any).label));
+                  setSelectedTags(
+                    e.map((t) => ({
+                      name: (t as any).label,
+                    }))
+                  );
+                }}
               />
             </FormGroup>
             <FormGroup>
@@ -199,13 +217,40 @@ export default function ReceipeForm({
     </>
   );
 }
+
+function useLoadRecipeData(recipeId: string | undefined) {
+  return useQuery<Recipe>(["recipes", recipeId], async () => {
+    if (recipeId) {
+      const res = await fetch(buildRoute(`/api/recipes/${recipeId}`));
+      return await res.json();
+    } else {
+      return Promise.resolve({
+        title: "",
+        notes: "",
+      } as Recipe);
+    }
+  });
+}
+
+function useLoadTags() {
+  return useQuery<Array<{ name: string }>>(["tags"], async () => {
+    const res = await fetch(buildRoute(`/api/tags`));
+    const resultArray = await res.json();
+    return resultArray.tags;
+  });
+}
+
 function useGetSaveMutation(
   recipeId: string | undefined,
   queryClient: QueryClient,
   onClose: () => void
 ): { mutate: any; isLoading: any } {
   return useMutation(
-    async (recipe: FormFields & { files: Array<UploadedFile> }) => {
+    async (
+      recipe: FormFields & { files: Array<UploadedFile> } & {
+        tags: Array<{ name: string }>;
+      }
+    ) => {
       let response;
       if (recipeId) {
         response = await patchData(`/api/recipes/${recipeId}`, recipe);
@@ -220,6 +265,7 @@ function useGetSaveMutation(
     {
       onSuccess: () => {
         queryClient.invalidateQueries("recipes");
+        queryClient.invalidateQueries("tags");
         onClose();
       },
       onError: (e) => console.error(JSON.stringify(e)),
