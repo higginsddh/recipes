@@ -48,3 +48,7 @@ Plan:
   - Generate shopping list
 - Integrate Restaurants
   - Combine reviews + to try
+
+Issues with SWA
+
+- "yarn build" doesn't fail GitHub Workflow
