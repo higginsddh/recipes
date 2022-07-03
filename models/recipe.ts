@@ -1,4 +1,5 @@
 import { UploadedFile } from "./uploadedFile";
+import { FileSearchTerm } from "./fileSearchTerm";
 
 export type Recipe = {
   id: string;
@@ -7,4 +8,5 @@ export type Recipe = {
   link?: string;
   files?: Array<UploadedFile>;
   tags?: Array<{ name: string }>;
+  fileSearchTerms?: Array<FileSearchTerm>;
 };

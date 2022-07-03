@@ -143,7 +143,6 @@ export default function ReceipeForm({
                 multiple
                 options={tags?.map((t) => t.name) ?? []}
                 onChange={(e) => {
-                  console.log(e.map((t) => (t as any).label));
                   setSelectedTags(
                     e.map((t) => ({
                       name: (t as any).label,

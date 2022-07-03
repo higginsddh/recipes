@@ -8,7 +8,11 @@ import DeleteRecipe from "./DeleteRecipe";
 import EditRecipe from "./EditRecipe";
 import FullPageSpinner from "./FullPageSpinner";
 
-export default function ReceipeList() {
+export default function ReceipeList({
+  searchFilter,
+}: {
+  searchFilter: string;
+}) {
   const { isLoading, error, data } = useQuery<{ recipes: Array<Recipe> }>(
     "recipes",
     () => fetch(buildRoute("/api/recipes")).then((res) => res.json())
@@ -25,55 +29,76 @@ export default function ReceipeList() {
 
   return (
     <>
-      {(data?.recipes ?? []).map((r) => (
-        <Card key={r.id} className="mb-3">
-          <CardBody>
-            <CardTitle tag="h5">
-              <div className="d-flex justify-content-between">
-                <div className="d-flex">
-                  {r.link ? (
-                    <div>
-                      <a href={r.link} target="_blank">
-                        Linked recipe
-                      </a>
-                    </div>
-                  ) : (
-                    r.title
-                  )}
+      {(data?.recipes ?? [])
+        .filter((r) => isSearchMatch(searchFilter, r))
+        .map((r) => (
+          <Card key={r.id} className="mb-3">
+            <CardBody>
+              <CardTitle tag="h5">
+                <div className="d-flex justify-content-between">
+                  <div className="d-flex">
+                    {r.link ? (
+                      <div>
+                        <a href={r.link} target="_blank">
+                          Linked recipe
+                        </a>
+                      </div>
+                    ) : (
+                      r.title
+                    )}
 
-                  {(r.files ?? []).length > 0 ? (
-                    <div className="ms-2 d-flex">
-                      {(r.files ?? []).map((file) => (
-                        <div key={file.id} className="me-3">
-                          <a href={file.url} target="_blank">
-                            <FontAwesomeIcon icon={faImage} size="lg" />
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
+                    {(r.files ?? []).length > 0 ? (
+                      <div className="ms-2 d-flex">
+                        {(r.files ?? []).map((file) => (
+                          <div key={file.id} className="me-3">
+                            <a href={file.url} target="_blank">
+                              <FontAwesomeIcon icon={faImage} size="lg" />
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div>
+                    <EditRecipe recipeId={r.id} />
+                    <DeleteRecipe recipeId={r.id} />
+                  </div>
                 </div>
-                <div>
-                  <EditRecipe recipeId={r.id} />
-                  <DeleteRecipe recipeId={r.id} />
-                </div>
+              </CardTitle>
+              <div className="card-text">
+                <div>{r.notes}</div>
+                {(r.tags ?? []).length > 0 ? (
+                  <div className="mt-2 d-flex">
+                    {r.tags?.map((t) => (
+                      <Badge color="info" pill key={t.name} className="me-2">
+                        {t.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
               </div>
-            </CardTitle>
-            <div className="card-text">
-              <div>{r.notes}</div>
-              {(r.tags ?? []).length > 0 ? (
-                <div className="mt-2 d-flex">
-                  {r.tags?.map((t) => (
-                    <Badge color="info" pill key={t.name} className="me-2">
-                      {t.name}
-                    </Badge>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </CardBody>
-        </Card>
-      ))}
+            </CardBody>
+          </Card>
+        ))}
     </>
   );
+}
+
+function isSearchMatch(searchFilter: string, recipe: Recipe) {
+  if (searchFilter.trim() === "") {
+    return true;
+  }
+
+  return (
+    containsTerm(searchFilter, recipe.title) ||
+    containsTerm(searchFilter, recipe.notes) ||
+    recipe.tags?.some((t) => containsTerm(searchFilter, t.name)) ||
+    recipe.fileSearchTerms?.some((t) => containsTerm(searchFilter, t.text))
+  );
+}
+
+function containsTerm(searchTerm: string, inputToCheck: string | null) {
+  inputToCheck = inputToCheck ?? "";
+
+  return inputToCheck.toLowerCase().includes(searchTerm.toLowerCase());
 }

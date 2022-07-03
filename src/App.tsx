@@ -1,8 +1,7 @@
 import { Navbar, NavbarBrand } from "reactstrap";
-import AddReceiptButton from "./AddRecipeButton";
 import "./App.css";
-import ReceipeList from "./RecipeList";
 import { QueryClient, QueryClientProvider } from "react-query";
+import Recipes from "./Recipes";
 
 const queryClient = new QueryClient();
 
@@ -13,11 +12,8 @@ export default function App() {
         <Navbar color="light" expand="md" light>
           <NavbarBrand href="/">Recipes</NavbarBrand>
         </Navbar>
-        <div className="container mt-5">
-          <div className="d-flex justify-content-end mb-3">
-            <AddReceiptButton />
-          </div>
-          <ReceipeList />
+        <div className="container mt-4">
+          <Recipes />
         </div>
       </QueryClientProvider>
     </>
