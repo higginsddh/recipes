@@ -1,7 +1,9 @@
-import { Navbar, NavbarBrand } from "reactstrap";
 import "./App.css";
 import { QueryClient, QueryClientProvider } from "react-query";
 import Recipes from "./Recipes";
+import AppNavbar from "./AppNavbar";
+import { Routes, Route } from "react-router-dom";
+import ShoppingList from "./ShoppingList";
 
 const queryClient = new QueryClient();
 
@@ -9,11 +11,12 @@ export default function App() {
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <Navbar color="light" expand="md" light>
-          <NavbarBrand href="/">Recipes</NavbarBrand>
-        </Navbar>
+        <AppNavbar />
         <div className="container mt-4">
-          <Recipes />
+          <Routes>
+            <Route path="/" element={<ShoppingList />} />
+            <Route path="/recipes" element={<Recipes />} />
+          </Routes>
         </div>
       </QueryClientProvider>
     </>
