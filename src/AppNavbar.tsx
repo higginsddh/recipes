@@ -1,29 +1,18 @@
-import {
-  Collapse,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Nav,
-  Navbar,
-  NavbarBrand,
-  NavbarText,
-  NavbarToggler,
-  NavItem,
-  NavLink,
-  UncontrolledDropdown,
-} from "reactstrap";
+import { Collapse, Nav, Navbar, NavbarToggler, NavItem } from "reactstrap";
 import "./App.css";
-import { QueryClient, QueryClientProvider } from "react-query";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export default function AppNavbar() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <Navbar color="light" expand="md" light>
       <Link to="/" className="navbar-brand">
         Food Organizer
       </Link>
-      <NavbarToggler onClick={function noRefCheck() {}} />
-      <Collapse navbar>
+      <NavbarToggler onClick={() => setIsOpen(!isOpen)} />
+      <Collapse isOpen={isOpen} navbar>
         <Nav className="me-auto" navbar>
           <NavItem>
             <Link to="/" className="nav-link">
