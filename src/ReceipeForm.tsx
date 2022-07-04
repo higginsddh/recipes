@@ -26,11 +26,13 @@ import { UploadedFile } from "../models/uploadedFile";
 import { Typeahead } from "react-bootstrap-typeahead";
 import "react-bootstrap-typeahead/css/Typeahead.css";
 import { patchData, postData } from "./services/httpUtilities";
+import ReceipeFormIngredients from "./ReceipeFormIngredients";
 
-type FormFields = {
+export type RecipeFormFields = {
   title: string;
   notes: string;
   link: string;
+  ingredients: Array<{ id: string; name: string }>;
 };
 
 export default function ReceipeForm({
@@ -40,7 +42,8 @@ export default function ReceipeForm({
   recipeId?: string;
   onClose: () => void;
 }) {
-  const { register, handleSubmit, reset } = useForm<FormFields>();
+  const { register, handleSubmit, reset, control } =
+    useForm<RecipeFormFields>();
   const [files, setFiles] = useState<Array<UploadedFile>>([]);
 
   const [selectedTags, setSelectedTags] = useState<Array<{ name: string }>>([]);
@@ -61,6 +64,12 @@ export default function ReceipeForm({
         title: defaultRecipeData?.title ?? "",
         notes: defaultRecipeData?.notes ?? "",
         link: defaultRecipeData?.link ?? "",
+        ingredients: defaultRecipeData?.ingredients ?? [
+          {
+            id: uuidv4(),
+            name: "",
+          },
+        ],
       });
       setFiles(defaultRecipeData?.files ?? []);
       setSelectedTags(defaultRecipeData?.tags ?? []);
@@ -111,6 +120,49 @@ export default function ReceipeForm({
                 {...register("title")}
               />
             </FormGroup>
+            {files.map((f) => (
+              <FormGroup key={f.id}>
+                <div>
+                  <img src={f.url} width="250px" />
+                </div>
+                <Button
+                  type="button"
+                  className="mt-2"
+                  size="sm"
+                  onClick={() =>
+                    setFiles((existingFiles) =>
+                      existingFiles.filter(
+                        (existingFile) => existingFile.id !== f.id
+                      )
+                    )
+                  }
+                >
+                  Delete
+                </Button>
+              </FormGroup>
+            ))}
+            <ReceipeFormIngredients control={control} register={register} />
+            <FormGroup>
+              <Label for="notes">Notes</Label>
+              <input
+                id="notes"
+                type="textarea"
+                className="form-control"
+                {...register("notes")}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="picture">Add Photo</Label>
+              <input
+                id="picture"
+                type="file"
+                className="form-control"
+                ref={fileRef}
+                onChange={(e) => {
+                  uploadFile((e as any).target.files);
+                }}
+              />
+            </FormGroup>
             <FormGroup>
               <Label htmlFor="tags">Tags</Label>
               <Typeahead
@@ -135,48 +187,6 @@ export default function ReceipeForm({
                 type="url"
                 className="form-control"
                 {...register("link")}
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label for="notes">Notes</Label>
-              <input
-                id="notes"
-                type="textarea"
-                className="form-control"
-                {...register("notes")}
-              />
-            </FormGroup>
-            {files.map((f) => (
-              <FormGroup key={f.id}>
-                <div>
-                  <img src={f.url} width="250px" />
-                </div>
-                <Button
-                  type="button"
-                  className="mt-2"
-                  size="sm"
-                  onClick={() =>
-                    setFiles((existingFiles) =>
-                      existingFiles.filter(
-                        (existingFile) => existingFile.id !== f.id
-                      )
-                    )
-                  }
-                >
-                  Delete
-                </Button>
-              </FormGroup>
-            ))}
-            <FormGroup>
-              <Label for="picture">Add Photo</Label>
-              <input
-                id="picture"
-                type="file"
-                className="form-control"
-                ref={fileRef}
-                onChange={(e) => {
-                  uploadFile((e as any).target.files);
-                }}
               />
             </FormGroup>
           </form>
@@ -223,7 +233,7 @@ function useGetSaveMutation(
 ): { mutate: any; isLoading: any } {
   return useMutation(
     async (
-      recipe: FormFields & { files: Array<UploadedFile> } & {
+      recipe: RecipeFormFields & { files: Array<UploadedFile> } & {
         tags: Array<{ name: string }>;
       }
     ) => {

@@ -9,4 +9,5 @@ export type Recipe = {
   files?: Array<UploadedFile>;
   tags?: Array<{ name: string }>;
   fileSearchTerms?: Array<FileSearchTerm>;
+  ingredients?: Array<{ id: string; name: string }>;
 };
