@@ -167,6 +167,12 @@ async function readTextFromImages(
 
   console.log(`processing ${newFiles.length} file(s)`);
 
+  let fileSearchTerms = [
+    ...(originalRecipe.fileSearchTerms ?? []).filter((t) =>
+      newRecipe.files.some((f) => f.id === t.fileId)
+    ),
+  ];
+
   for (let i = 0; i < newFiles.length; i++) {
     const result = await computerVisionClient.read(newFiles[i].url);
     const operation = result.operationLocation.split("/").slice(-1)[0];
@@ -182,20 +188,25 @@ async function readTextFromImages(
     }
 
     if (operationResult.status === "succeeded") {
-      return operationResult.analyzeResult.readResults.flatMap((r) =>
-        r.lines.map(
-          (l) =>
-            ({
-              fileId: newFiles[i].id,
-              text: l.text,
-            } as FileSearchTerm)
-        )
-      );
+      fileSearchTerms = [
+        ...fileSearchTerms,
+        ...operationResult.analyzeResult.readResults.flatMap((r) =>
+          r.lines.map(
+            (l) =>
+              ({
+                fileId: newFiles[i].id,
+                text: l.text,
+              } as FileSearchTerm)
+          )
+        ),
+      ];
     } else {
       console.log("unable to get response from ocr service");
       return [];
     }
   }
+
+  return fileSearchTerms;
 }
 
 async function deleteRecipe(request: HttpRequest, context: Context) {
