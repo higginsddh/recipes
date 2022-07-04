@@ -1,12 +1,21 @@
 import { faImage } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useEffect, useState } from "react";
 import {
   QueryClient,
   useMutation,
   useQuery,
   useQueryClient,
 } from "react-query";
-import { Card, CardBody, CardTitle, CardText, Badge, Button } from "reactstrap";
+import {
+  Card,
+  CardBody,
+  CardTitle,
+  CardText,
+  Badge,
+  Button,
+  Alert,
+} from "reactstrap";
 import { v4 } from "uuid";
 import { Recipe } from "../models/recipe";
 import { ShoppingListItem } from "../models/shoppingListItem";
@@ -26,9 +35,31 @@ export default function ReceipeList({
     () => fetch(buildRoute("/api/recipes")).then((res) => res.json())
   );
 
+  const [showAddConfirmation, setShowAddConfirmation] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(false);
+
   const queryClient = useQueryClient();
   const { mutate: createShoppingListItems } =
-    useCreateShoppingListItemsMutation(queryClient);
+    useCreateShoppingListItemsMutation(
+      queryClient,
+      setShowAddConfirmation,
+      setShowSpinner
+    );
+
+  useEffect(() => {
+    let id: any | null = null;
+    if (showAddConfirmation) {
+      id = setTimeout(() => {
+        setShowAddConfirmation(false);
+      }, 5000);
+    }
+
+    return function cleanup() {
+      if (id) {
+        clearTimeout(id);
+      }
+    };
+  }, [showAddConfirmation]);
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -41,6 +72,14 @@ export default function ReceipeList({
 
   return (
     <>
+      {showSpinner ? <FullPageSpinner /> : null}
+
+      {showAddConfirmation ? (
+        <Alert color="success" toggle={() => setShowAddConfirmation(false)}>
+          Items added!
+        </Alert>
+      ) : null}
+
       {(data?.recipes ?? [])
         .filter((r) => isSearchMatch(searchFilter, r))
         .map((r) => (
@@ -143,9 +182,15 @@ function containsTerm(searchTerm: string, inputToCheck: string | null) {
   return inputToCheck.toLowerCase().includes(searchTerm.toLowerCase());
 }
 
-function useCreateShoppingListItemsMutation(queryClient: QueryClient) {
+function useCreateShoppingListItemsMutation(
+  queryClient: QueryClient,
+  setShowAddConfirmation: React.Dispatch<React.SetStateAction<boolean>>,
+  setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
+) {
   return useMutation(
     async (shoppingListItems: Array<Partial<ShoppingListItem>>) => {
+      setShowSpinner(true);
+
       const results = await Promise.all(
         shoppingListItems.map((i) => postData("/api/shoppingListItem", i))
       );
@@ -157,9 +202,14 @@ function useCreateShoppingListItemsMutation(queryClient: QueryClient) {
     {
       onSuccess: () => {
         queryClient.invalidateQueries("shoppingListItems");
+        setShowAddConfirmation(true);
+        setShowSpinner(false);
       },
 
-      onError: (e) => console.error(JSON.stringify(e)),
+      onError: (e) => {
+        console.error(JSON.stringify(e));
+        setShowSpinner(false);
+      },
     }
   );
 }
