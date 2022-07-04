@@ -1,7 +1,6 @@
 {
-  "routes": [
-    {
-      "route": "/recipes"
-    }
-  ]
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*"]
+  }
 }
