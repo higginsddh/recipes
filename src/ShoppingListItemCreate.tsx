@@ -12,6 +12,8 @@ import { ShoppingListItem } from "../models/shoppingListItem";
 import FullPageSpinner from "./FullPageSpinner";
 import { postData } from "./services/httpUtilities";
 import React, { useState } from "react";
+import { v4 } from "uuid";
+import toast from "react-hot-toast";
 
 export default function ShoppingListItemCreate() {
   const [name, setName] = useState("");
@@ -23,7 +25,6 @@ export default function ShoppingListItemCreate() {
 
   return (
     <>
-      {mutateIsSaving ? <FullPageSpinner /> : null}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -55,6 +56,10 @@ function useCreateShoppingListItemMutation(
 ) {
   return useMutation(
     async (shoppingListItem: Partial<ShoppingListItem>) => {
+      await queryClient.cancelQueries(["shoppingListItems"]);
+
+      const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
+
       const response = await postData(
         "/api/shoppingListItem",
         shoppingListItem
@@ -63,14 +68,54 @@ function useCreateShoppingListItemMutation(
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
+
+      return { previousShoppingListItems: oldQueryData[0][1] };
     },
+
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries("shoppingListItems");
+      onMutate: async (shoppingListItem: Partial<ShoppingListItem>) => {
+        await queryClient.cancelQueries(["shoppingListItems"]);
+
+        const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
+
+        queryClient.setQueryData<{
+          shoppingListItems: Array<ShoppingListItem>;
+        }>("shoppingListItems", (old) => ({
+          shoppingListItems: [
+            ...(old?.shoppingListItems ?? []),
+            {
+              id: v4(),
+              name: "",
+              purchased: false,
+              quantity: 1,
+              ...shoppingListItem,
+            },
+          ],
+        }));
+
         setName("");
+
+        return { previousShoppingListItems: oldQueryData[0][1] };
       },
 
-      onError: (e) => console.error(JSON.stringify(e)),
+      onSuccess: () => {},
+
+      onSettled: () => {
+        queryClient.invalidateQueries("shoppingListItems");
+      },
+
+      onError: (e, _, context) => {
+        if (context?.previousShoppingListItems) {
+          queryClient.setQueryData(
+            ["shoppingListItems"],
+            context.previousShoppingListItems
+          );
+        }
+
+        toast.error("Unable to add item");
+
+        console.error(JSON.stringify(e));
+      },
     }
   );
 }

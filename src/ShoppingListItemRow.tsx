@@ -145,7 +145,7 @@ function useDeleteShoppingListItem(queryClient: QueryClient) {
       },
 
       onSettled: () => {
-        // queryClient.invalidateQueries(["shoppingListItems"]);
+        queryClient.invalidateQueries(["shoppingListItems"]);
       },
 
       onError: (err: any, newRecipes: any, context: any) => {
