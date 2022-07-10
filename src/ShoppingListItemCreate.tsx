@@ -1,15 +1,8 @@
-import { faCheck, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "react-query";
+import { QueryClient, useMutation, useQueryClient } from "react-query";
 import { Button, Input } from "reactstrap";
-import { buildRoute } from "./buildRoute";
 import { ShoppingListItem } from "../models/shoppingListItem";
-import FullPageSpinner from "./FullPageSpinner";
 import { postData } from "./services/httpUtilities";
 import React, { useState } from "react";
 import { v4 } from "uuid";
@@ -30,6 +23,7 @@ export default function ShoppingListItemCreate() {
           e.preventDefault();
 
           createShoppingListItem({
+            id: v4(),
             name,
           });
         }}
@@ -55,7 +49,7 @@ function useCreateShoppingListItemMutation(
   setName: React.Dispatch<React.SetStateAction<string>>
 ) {
   return useMutation(
-    async (shoppingListItem: Partial<ShoppingListItem>) => {
+    async (shoppingListItem: Pick<ShoppingListItem, "id" | "name">) => {
       await queryClient.cancelQueries(["shoppingListItems"]);
 
       const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
@@ -73,7 +67,9 @@ function useCreateShoppingListItemMutation(
     },
 
     {
-      onMutate: async (shoppingListItem: Partial<ShoppingListItem>) => {
+      onMutate: async (
+        shoppingListItem: Pick<ShoppingListItem, "id" | "name">
+      ) => {
         await queryClient.cancelQueries(["shoppingListItems"]);
 
         const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
@@ -84,8 +80,6 @@ function useCreateShoppingListItemMutation(
           shoppingListItems: [
             ...(old?.shoppingListItems ?? []),
             {
-              id: v4(),
-              name: "",
               purchased: false,
               quantity: 1,
               ...shoppingListItem,
