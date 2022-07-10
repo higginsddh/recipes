@@ -11,16 +11,15 @@ import { buildRoute } from "./buildRoute";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import FullPageSpinner from "./FullPageSpinner";
 import { postData } from "./services/httpUtilities";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 
 export default function ShoppingListItemCreate() {
   const [name, setName] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
   const { mutate: createShoppingListItem, isLoading: mutateIsSaving } =
-    useCreateShoppingListItemMutation(queryClient, setName, inputRef);
+    useCreateShoppingListItemMutation(queryClient, setName);
 
   return (
     <>
@@ -35,14 +34,11 @@ export default function ShoppingListItemCreate() {
         }}
       >
         <div className="input-group mb-3">
-          <input
-            className="form-control"
+          <Input
             placeholder="Add item..."
             required
             value={name}
             onChange={(e) => setName(e.currentTarget.value)}
-            disabled={mutateIsSaving}
-            ref={inputRef}
           />
           <Button color="secondary">
             <FontAwesomeIcon icon={faPlus} />
@@ -55,8 +51,7 @@ export default function ShoppingListItemCreate() {
 
 function useCreateShoppingListItemMutation(
   queryClient: QueryClient,
-  setName: React.Dispatch<React.SetStateAction<string>>,
-  inputRef: React.RefObject<HTMLInputElement>
+  setName: React.Dispatch<React.SetStateAction<string>>
 ) {
   return useMutation(
     async (shoppingListItem: Partial<ShoppingListItem>) => {
@@ -73,13 +68,8 @@ function useCreateShoppingListItemMutation(
       onSuccess: () => {
         queryClient.invalidateQueries("shoppingListItems");
         setName("");
-
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.focus();
-          }
-        });
       },
+
       onError: (e) => console.error(JSON.stringify(e)),
     }
   );

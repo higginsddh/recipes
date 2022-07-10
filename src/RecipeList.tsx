@@ -112,7 +112,7 @@ export default function ReceipeList({
                   </div>
                   <div className="d-flex flex-nowrap align-items-start">
                     <EditRecipe recipeId={r.id} />
-                    <DeleteRecipe recipeId={r.id} />
+                    <DeleteRecipe recipeId={r.id} title={r.title} />
                   </div>
                 </div>
               </CardTitle>

@@ -43,7 +43,7 @@ export default function ReceipeForm({
   recipeId?: string;
   onClose: () => void;
 }) {
-  const { register, handleSubmit, reset, control } =
+  const { register, handleSubmit, reset, control, setFocus } =
     useForm<RecipeFormFields>();
   const [files, setFiles] = useState<Array<UploadedFile>>([]);
 
@@ -80,6 +80,16 @@ export default function ReceipeForm({
       hasFormInitialized.current = true;
     }
   }, [defaultRecipeData, isLoadingRecipeData]);
+
+  const hasSetFocus = useRef<boolean>(false);
+  useEffect(() => {
+    if (!recipeId && !hasSetFocus.current) {
+      setTimeout(() => {
+        setFocus("title");
+      });
+      hasSetFocus.current = true;
+    }
+  }, [recipeId]);
 
   const { mutate: saveForm, isLoading: mutateIsSaving } = useGetSaveMutation(
     recipeId,

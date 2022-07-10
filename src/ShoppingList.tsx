@@ -1,12 +1,10 @@
-import { faCheck, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQuery } from "react-query";
-import { Button, Input } from "reactstrap";
 import { buildRoute } from "./buildRoute";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import FullPageSpinner from "./FullPageSpinner";
 import ShoppingListItemCreate from "./ShoppingListItemCreate";
 import ShoppingListItemRow from "./ShoppingListItemRow";
+import ErrorBoundary from "./ErrorBoundary";
 
 export default function ShoppingList() {
   const {
@@ -32,9 +30,11 @@ export default function ShoppingList() {
     <div>
       <ShoppingListItemCreate />
 
-      {data.shoppingListItems.map((i) => (
-        <ShoppingListItemRow shoppingListItem={i} key={i.id} />
-      ))}
+      <ErrorBoundary errorMessage="Unable to load shopping list items">
+        {data.shoppingListItems.map((i) => (
+          <ShoppingListItemRow shoppingListItem={i} key={i.id} />
+        ))}
+      </ErrorBoundary>
     </div>
   );
 }

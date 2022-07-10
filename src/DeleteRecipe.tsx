@@ -6,8 +6,15 @@ import IconButton from "./IconButton";
 import { Recipe } from "../models/recipe";
 import { useState } from "react";
 import { Button, Modal, ModalBody, ModalFooter } from "reactstrap";
+import toast from "react-hot-toast";
 
-export default function DeleteRecipe({ recipeId }: { recipeId: string }) {
+export default function DeleteRecipe({
+  recipeId,
+  title,
+}: {
+  recipeId: string;
+  title: string;
+}) {
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   const queryClient = useQueryClient();
@@ -25,7 +32,10 @@ export default function DeleteRecipe({ recipeId }: { recipeId: string }) {
       </IconButton>
       {showConfirmation ? (
         <Modal isOpen={true}>
-          <ModalBody>Are you sure you want to delete this recipe?</ModalBody>
+          <ModalBody>
+            Are you sure you want to delete{" "}
+            <span className="fw-bold">{title}</span>?
+          </ModalBody>
           <ModalFooter>
             <Button
               type="button"
@@ -59,23 +69,22 @@ function useDeleteReceipe(queryClient: QueryClient) {
       onMutate: async (id: string) => {
         await queryClient.cancelQueries("recipes");
 
-        const previousRecipes = queryClient.getQueriesData(
-          "recipes"
-        ) as unknown as { recipes: Array<Recipe> };
+        const oldQueryData = queryClient.getQueriesData(["recipes"]);
 
         queryClient.setQueryData<{ recipes: Array<Recipe> }>(
           "recipes",
           (old) => ({ recipes: old?.recipes.filter((r) => r.id !== id) ?? [] })
         );
 
-        return { previousRecipes };
+        return { previousRecipes: oldQueryData[0][1] };
       },
 
-      onSuccess: () => {
+      onSettled: () => {
         queryClient.invalidateQueries("recipes");
       },
 
       onError: (err: any, newRecipes: any, context: any) => {
+        toast.error("Unable to delete item");
         queryClient.setQueryData("recipes", context.previousRecipes);
       },
     }

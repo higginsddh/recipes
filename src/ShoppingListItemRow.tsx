@@ -132,9 +132,7 @@ function useDeleteShoppingListItem(queryClient: QueryClient) {
       onMutate: async (id: string) => {
         await queryClient.cancelQueries(["shoppingListItems"]);
 
-        const previousShoppingListItems = queryClient.getQueriesData([
-          "shoppingListItems",
-        ]);
+        const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
 
         queryClient.setQueryData<{
           shoppingListItems: Array<ShoppingListItem>;
@@ -143,12 +141,11 @@ function useDeleteShoppingListItem(queryClient: QueryClient) {
             old?.shoppingListItems.filter((r) => r.id !== id) ?? [],
         }));
 
-        console.log(previousShoppingListItems);
-        return { previousShoppingListItems };
+        return { previousShoppingListItems: oldQueryData[0][1] };
       },
 
       onSettled: () => {
-        queryClient.invalidateQueries(["shoppingListItems"]);
+        // queryClient.invalidateQueries(["shoppingListItems"]);
       },
 
       onError: (err: any, newRecipes: any, context: any) => {
@@ -157,7 +154,7 @@ function useDeleteShoppingListItem(queryClient: QueryClient) {
           context.previousShoppingListItems
         );
 
-        toast.error("Unable to save change");
+        toast.error("Unable to delete item");
         console.error(JSON.stringify(err));
       },
     }
