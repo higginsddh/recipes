@@ -120,6 +120,16 @@ export default function ReceipeForm({
                 {...register("title")}
               />
             </FormGroup>
+            <ReceipeFormIngredients control={control} register={register} />
+            <FormGroup>
+              <Label for="notes">Notes</Label>
+              <input
+                id="notes"
+                type="textarea"
+                className="form-control"
+                {...register("notes")}
+              />
+            </FormGroup>
             {files.map((f) => (
               <FormGroup key={f.id}>
                 <div>
@@ -141,16 +151,6 @@ export default function ReceipeForm({
                 </Button>
               </FormGroup>
             ))}
-            <ReceipeFormIngredients control={control} register={register} />
-            <FormGroup>
-              <Label for="notes">Notes</Label>
-              <input
-                id="notes"
-                type="textarea"
-                className="form-control"
-                {...register("notes")}
-              />
-            </FormGroup>
             <FormGroup>
               <Label for="picture">Add Photo</Label>
               <input
@@ -158,6 +158,7 @@ export default function ReceipeForm({
                 type="file"
                 className="form-control"
                 ref={fileRef}
+                accept="image/*"
                 onChange={(e) => {
                   uploadFile((e as any).target.files);
                 }}

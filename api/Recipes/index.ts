@@ -168,7 +168,7 @@ async function readTextFromImages(
   console.log(`processing ${newFiles.length} file(s)`);
 
   let fileSearchTerms = [
-    ...(originalRecipe.fileSearchTerms ?? []).filter((t) =>
+    ...(originalRecipe?.fileSearchTerms ?? []).filter((t) =>
       newRecipe.files.some((f) => f.id === t.fileId)
     ),
   ];
