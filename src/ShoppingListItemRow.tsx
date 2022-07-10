@@ -1,4 +1,4 @@
-import { faCheck, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   QueryClient,
@@ -14,6 +14,7 @@ import ShoppingListItemCreate from "./ShoppingListItemCreate";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { patchData } from "./services/httpUtilities";
+import toast from "react-hot-toast";
 
 type FormFields = {
   name: string;
@@ -36,10 +37,8 @@ export default function ShoppingListItemRow({
   const { mutate: deleteShoppingListItem } =
     useDeleteShoppingListItem(queryClient);
 
-  const { mutate: updateShoppingListItem } = useGetSaveMutation(
-    shoppingListItem.id,
-    queryClient
-  );
+  const { mutate: updateShoppingListItem, isLoading: isSaving } =
+    useGetSaveMutation(shoppingListItem.id, queryClient);
 
   const purchased = watch("purchased");
 
@@ -59,7 +58,13 @@ export default function ShoppingListItemRow({
               type="checkbox"
               value=""
               aria-label="Item purchased?"
-              {...register("purchased")}
+              {...register("purchased", {
+                onChange: () => {
+                  updateShoppingListItem({
+                    purchased: getValues("purchased"),
+                  });
+                },
+              })}
             />
           </div>
           <input
@@ -67,9 +72,15 @@ export default function ShoppingListItemRow({
             {...register("name")}
             style={{ textDecoration: purchased ? "line-through" : undefined }}
           />
-          <Button color="secondary" type="submit" className="me-3">
-            <FontAwesomeIcon icon={faCheck} />
-          </Button>
+          {isSaving ? (
+            <Button color="secondary" type="button" className="me-3" disabled>
+              <FontAwesomeIcon icon={faSpinner} spin={true} />
+            </Button>
+          ) : (
+            <Button color="secondary" type="submit" className="me-3">
+              <FontAwesomeIcon icon={faCheck} />
+            </Button>
+          )}
           <Button
             color="secondary"
             type="button"
@@ -88,7 +99,7 @@ function useGetSaveMutation(
   queryClient: QueryClient
 ) {
   return useMutation(
-    async (recipe: FormFields) => {
+    async (recipe: Partial<FormFields>) => {
       const response = await patchData(
         `/api/recipes/${shoppingListItemId}`,
         recipe
@@ -102,7 +113,10 @@ function useGetSaveMutation(
       onSuccess: () => {
         queryClient.invalidateQueries("shoppingListItems");
       },
-      onError: (e) => console.error(JSON.stringify(e)),
+      onError: (e) => {
+        toast.error("Unable to save change");
+        console.error(JSON.stringify(e));
+      },
     }
   );
 }
@@ -116,11 +130,11 @@ function useDeleteShoppingListItem(queryClient: QueryClient) {
     },
     {
       onMutate: async (id: string) => {
-        await queryClient.cancelQueries("shoppingListItems");
+        await queryClient.cancelQueries(["shoppingListItems"]);
 
-        const previousShoppingListItems = queryClient.getQueriesData(
-          "shoppingListItems"
-        ) as unknown as { shoppingListItems: Array<ShoppingListItem> };
+        const previousShoppingListItems = queryClient.getQueriesData([
+          "shoppingListItems",
+        ]);
 
         queryClient.setQueryData<{
           shoppingListItems: Array<ShoppingListItem>;
@@ -129,18 +143,22 @@ function useDeleteShoppingListItem(queryClient: QueryClient) {
             old?.shoppingListItems.filter((r) => r.id !== id) ?? [],
         }));
 
+        console.log(previousShoppingListItems);
         return { previousShoppingListItems };
       },
 
-      onSuccess: () => {
-        queryClient.invalidateQueries("shoppingListItems");
+      onSettled: () => {
+        queryClient.invalidateQueries(["shoppingListItems"]);
       },
 
       onError: (err: any, newRecipes: any, context: any) => {
         queryClient.setQueryData(
-          "shoppingListItems",
+          ["shoppingListItems"],
           context.previousShoppingListItems
         );
+
+        toast.error("Unable to save change");
+        console.error(JSON.stringify(err));
       },
     }
   );
