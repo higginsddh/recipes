@@ -16,6 +16,7 @@ import {
 import { useForm } from "react-hook-form";
 import { buildRoute } from "./buildRoute";
 import { Recipe } from "../models/recipe";
+import { ErrorResponse } from "../models/errorResponse";
 import React, { useEffect, useRef, useState } from "react";
 import FullPageSpinner from "./FullPageSpinner";
 import { v4 as uuidv4 } from "uuid";
@@ -47,6 +48,9 @@ export default function ReceipeForm({
   const [files, setFiles] = useState<Array<UploadedFile>>([]);
 
   const [selectedTags, setSelectedTags] = useState<Array<{ name: string }>>([]);
+  const [errorResponse, setErrorResponse] = useState<ErrorResponse | null>(
+    null
+  );
 
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -80,6 +84,7 @@ export default function ReceipeForm({
   const { mutate: saveForm, isLoading: mutateIsSaving } = useGetSaveMutation(
     recipeId,
     queryClient,
+    setErrorResponse,
     onClose
   );
 
@@ -192,13 +197,21 @@ export default function ReceipeForm({
             </FormGroup>
           </form>
         </ModalBody>
-        <ModalFooter>
-          <Button type="submit" color="primary" form="modalForm">
-            Save
-          </Button>
-          <Button type="button" color="secondary" onClick={() => onClose()}>
-            Cancel
-          </Button>
+        <ModalFooter className="justify-content-between">
+          <div className="text-danger">{errorResponse?.error}</div>
+          <div>
+            <Button
+              type="submit"
+              color="primary"
+              form="modalForm"
+              className="me-2"
+            >
+              Save
+            </Button>
+            <Button type="button" color="secondary" onClick={() => onClose()}>
+              Cancel
+            </Button>
+          </div>
         </ModalFooter>
       </Modal>
     </>
@@ -230,22 +243,52 @@ function useLoadTags() {
 function useGetSaveMutation(
   recipeId: string | undefined,
   queryClient: QueryClient,
+  setErrorResponse: React.Dispatch<React.SetStateAction<ErrorResponse | null>>,
   onClose: () => void
 ): { mutate: any; isLoading: any } {
+  const defaultErrorResponse: ErrorResponse = {
+    error: "An unknown error occurred while saving.",
+  };
+
   return useMutation(
     async (
       recipe: RecipeFormFields & { files: Array<UploadedFile> } & {
         tags: Array<{ name: string }>;
       }
     ) => {
+      setErrorResponse(null);
+
       let response;
-      if (recipeId) {
-        response = await patchData(`/api/recipes/${recipeId}`, recipe);
-      } else {
-        response = await postData("/api/recipes", recipe);
+      try {
+        if (recipeId) {
+          response = await patchData(`/api/recipes/${recipeId}`, recipe);
+        } else {
+          response = await postData("/api/recipes", recipe);
+        }
+      } catch (e) {
+        setErrorResponse(defaultErrorResponse);
+        throw e;
       }
 
       if (!response.ok) {
+        let errorResponseSet = false;
+        try {
+          const responseBody = await response.json();
+          if (
+            typeof responseBody === "object" &&
+            typeof responseBody.error === "string"
+          ) {
+            setErrorResponse(responseBody);
+            errorResponseSet = true;
+          }
+        } catch {
+          console.error("exception reading body");
+        }
+
+        if (!errorResponseSet) {
+          setErrorResponse(defaultErrorResponse);
+        }
+
         throw new Error("Network response was not ok");
       }
     },
@@ -255,7 +298,9 @@ function useGetSaveMutation(
         queryClient.invalidateQueries("tags");
         onClose();
       },
-      onError: (e) => console.error(JSON.stringify(e)),
+      onError: (e) => {
+        console.error(JSON.stringify(e));
+      },
     }
   );
 }
