@@ -1,20 +1,14 @@
 import { faCheck, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "react-query";
-import { Button, Input } from "reactstrap";
+import { QueryClient, useMutation, useQueryClient } from "react-query";
+import { Button } from "reactstrap";
 import { buildRoute } from "./buildRoute";
 import { ShoppingListItem } from "../models/shoppingListItem";
-import FullPageSpinner from "./FullPageSpinner";
-import ShoppingListItemCreate from "./ShoppingListItemCreate";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { patchData } from "./services/httpUtilities";
 import toast from "react-hot-toast";
+import { useEffect, useRef } from "react";
+import { debounceTime, Subject } from "rxjs";
 
 type FormFields = {
   name: string;
@@ -42,54 +36,61 @@ export default function ShoppingListItemRow({
 
   const purchased = watch("purchased");
 
+  const nameChange = useRef(new Subject<string>());
+  useEffect(() => {
+    let subscription = nameChange.current
+      .pipe(debounceTime(150))
+      .subscribe(() => {
+        updateShoppingListItem({
+          name: getValues("name"),
+        });
+      });
+
+    return function cleanup() {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-
-          updateShoppingListItem(getValues());
-        }}
-      >
-        <div className="input-group mb-3">
-          <div className="input-group-text">
-            <input
-              className="form-check-input mt-0"
-              type="checkbox"
-              value=""
-              aria-label="Item purchased?"
-              {...register("purchased", {
-                onChange: () => {
-                  updateShoppingListItem({
-                    purchased: getValues("purchased"),
-                  });
-                },
-              })}
-            />
-          </div>
+      <div className="input-group mb-3">
+        <div className="input-group-text">
           <input
-            className="form-control"
-            {...register("name")}
-            style={{ textDecoration: purchased ? "line-through" : undefined }}
+            className="form-check-input mt-0"
+            type="checkbox"
+            value=""
+            aria-label="Item purchased?"
+            {...register("purchased", {
+              onChange: () => {
+                updateShoppingListItem({
+                  purchased: getValues("purchased"),
+                });
+              },
+            })}
           />
-          {isSaving ? (
-            <Button color="secondary" type="button" className="me-3" disabled>
-              <FontAwesomeIcon icon={faSpinner} spin={true} />
-            </Button>
-          ) : (
-            <Button color="secondary" type="submit" className="me-3">
-              <FontAwesomeIcon icon={faCheck} />
-            </Button>
-          )}
-          <Button
-            color="secondary"
-            type="button"
-            onClick={() => deleteShoppingListItem(shoppingListItem.id)}
-          >
-            <FontAwesomeIcon icon={faTrash} />
-          </Button>
         </div>
-      </form>
+        <input
+          className="form-control"
+          {...register("name", {
+            onChange: () => {
+              nameChange.current.next(getValues("name"));
+            },
+          })}
+          style={{ textDecoration: purchased ? "line-through" : undefined }}
+        />
+        {isSaving ? (
+          <Button color="secondary" type="button" className="me-3" disabled>
+            <FontAwesomeIcon icon={faSpinner} spin={true} />
+          </Button>
+        ) : null}
+        <Button
+          color="secondary"
+          type="button"
+          onClick={() => deleteShoppingListItem(shoppingListItem.id)}
+        >
+          <FontAwesomeIcon icon={faTrash} />
+        </Button>
+      </div>
     </>
   );
 }
