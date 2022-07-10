@@ -89,8 +89,11 @@ async function createShoppingListeItem(request: HttpRequest, context: Context) {
 }
 
 async function deleteShoppingListItem(request: HttpRequest, context: Context) {
-  const id = request.query["id"];
+  const { ids } = request.body as { ids: Array<string> };
+  console.log(ids);
 
   const container = await getContainer();
-  await container.item(id).delete();
+
+  const promises = ids.map((id) => container.item(id).delete());
+  await Promise.all(promises);
 }

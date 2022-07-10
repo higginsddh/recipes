@@ -1,8 +1,7 @@
-import { faCheck, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import { Button } from "reactstrap";
-import { buildRoute } from "./buildRoute";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import { useForm } from "react-hook-form";
 import { patchData } from "./services/httpUtilities";
@@ -27,9 +26,6 @@ export default function ShoppingListItemRow({
       purchased: shoppingListItem.purchased,
     },
   });
-
-  const { mutate: deleteShoppingListItem } =
-    useDeleteShoppingListItem(queryClient);
 
   const { mutate: updateShoppingListItem, isLoading: isSaving } =
     useGetSaveMutation(shoppingListItem.id, queryClient);
@@ -79,17 +75,10 @@ export default function ShoppingListItemRow({
           style={{ textDecoration: purchased ? "line-through" : undefined }}
         />
         {isSaving ? (
-          <Button color="secondary" type="button" className="me-3" disabled>
+          <Button color="secondary" type="button" disabled>
             <FontAwesomeIcon icon={faSpinner} spin={true} />
           </Button>
         ) : null}
-        <Button
-          color="secondary"
-          type="button"
-          onClick={() => deleteShoppingListItem(shoppingListItem.id)}
-        >
-          <FontAwesomeIcon icon={faTrash} />
-        </Button>
       </div>
     </>
   );
@@ -117,46 +106,6 @@ function useGetSaveMutation(
       onError: (e) => {
         toast.error("Unable to save change");
         console.error(JSON.stringify(e));
-      },
-    }
-  );
-}
-
-function useDeleteShoppingListItem(queryClient: QueryClient) {
-  return useMutation(
-    async (id: string) => {
-      await fetch(buildRoute(`/api/shoppingListItem?id=${id}`), {
-        method: "DELETE",
-      });
-    },
-    {
-      onMutate: async (id: string) => {
-        await queryClient.cancelQueries(["shoppingListItems"]);
-
-        const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
-
-        queryClient.setQueryData<{
-          shoppingListItems: Array<ShoppingListItem>;
-        }>("shoppingListItems", (old) => ({
-          shoppingListItems:
-            old?.shoppingListItems.filter((r) => r.id !== id) ?? [],
-        }));
-
-        return { previousShoppingListItems: oldQueryData[0][1] };
-      },
-
-      onSettled: () => {
-        queryClient.invalidateQueries(["shoppingListItems"]);
-      },
-
-      onError: (err: any, newRecipes: any, context: any) => {
-        queryClient.setQueryData(
-          ["shoppingListItems"],
-          context.previousShoppingListItems
-        );
-
-        toast.error("Unable to delete item");
-        console.error(JSON.stringify(err));
       },
     }
   );
