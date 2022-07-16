@@ -69,7 +69,7 @@ export default function ShoppingListItemRow({
           className="form-control"
           {...register("name", {
             onChange: () => {
-              nameChange.current.next(getValues("name"));
+              nameChange.current.next(getValues("name").trim());
             },
           })}
           style={{ textDecoration: purchased ? "line-through" : undefined }}
@@ -89,10 +89,10 @@ function useGetSaveMutation(
   queryClient: QueryClient
 ) {
   return useMutation(
-    async (recipe: Partial<FormFields>) => {
+    async (shoppingListItem: Partial<FormFields>) => {
       const response = await patchData(
-        `/api/recipes/${shoppingListItemId}`,
-        recipe
+        `/api/ShoppingListItem/${shoppingListItemId}`,
+        shoppingListItem
       );
 
       if (!response.ok) {

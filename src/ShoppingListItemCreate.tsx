@@ -24,7 +24,7 @@ export default function ShoppingListItemCreate() {
 
           createShoppingListItem({
             id: v4(),
-            name,
+            name: name.trim(),
           });
         }}
       >

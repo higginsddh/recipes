@@ -7,18 +7,28 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   context.log("HTTP trigger function processed a request.");
+
   switch (req.method) {
     case "GET":
       await getShoppingList(req, context);
       return;
     case "POST":
       await createShoppingListeItem(req, context);
+
+      setSignalRMessageToShoppingListItemsChanged(context);
+
       return;
     case "PATCH":
       await updateShoppingListItem(req, context);
+
+      setSignalRMessageToShoppingListItemsChanged(context);
+
       return;
     case "DELETE":
       await deleteShoppingListItem(req, context);
+
+      setSignalRMessageToShoppingListItemsChanged(context);
+
       return;
     default:
       context.res = {
@@ -96,4 +106,13 @@ async function deleteShoppingListItem(request: HttpRequest, context: Context) {
 
   const promises = ids.map((id) => container.item(id).delete());
   await Promise.all(promises);
+}
+
+function setSignalRMessageToShoppingListItemsChanged(context: Context) {
+  context.bindings.signalRMessages = [
+    {
+      target: "shoppingListItemsChanged",
+      arguments: [],
+    },
+  ];
 }

@@ -21,5 +21,6 @@
       "connectionStringSetting": "AzureSignalRConnectionString",
       "direction": "in"
     }
-  ]
+  ],
+  "scriptFile": "../dist/negotiate/index.js"
 }

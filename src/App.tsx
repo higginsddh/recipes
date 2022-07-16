@@ -5,6 +5,7 @@ import AppNavbar from "./AppNavbar";
 import { Routes, Route } from "react-router-dom";
 import ShoppingList from "./ShoppingList";
 import { Toaster } from "react-hot-toast";
+import RealTimeWrapper from "./RealTimeWrapper";
 
 const queryClient = new QueryClient();
 
@@ -13,13 +14,15 @@ export default function App() {
     <>
       <Toaster />
       <QueryClientProvider client={queryClient}>
-        <AppNavbar />
-        <div className="container mt-4">
-          <Routes>
-            <Route path="/" element={<ShoppingList />} />
-            <Route path="/recipes" element={<Recipes />} />
-          </Routes>
-        </div>
+        <RealTimeWrapper>
+          <AppNavbar />
+          <div className="container mt-4">
+            <Routes>
+              <Route path="/" element={<ShoppingList />} />
+              <Route path="/recipes" element={<Recipes />} />
+            </Routes>
+          </div>
+        </RealTimeWrapper>
       </QueryClientProvider>
     </>
   );

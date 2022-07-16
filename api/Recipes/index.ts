@@ -12,6 +12,7 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   context.log("HTTP trigger function processed a request.");
+
   switch (req.method) {
     case "GET":
       await getRecipes(req, context);
