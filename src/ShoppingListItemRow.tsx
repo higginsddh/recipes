@@ -60,7 +60,6 @@ export default function ShoppingListItemRow({
             className="d-flex"
             ref={provided.innerRef}
             {...provided.draggableProps}
-            {...provided.dragHandleProps}
           >
             <div className="input-group mb-3">
               <div className="input-group-text">
@@ -98,8 +97,8 @@ export default function ShoppingListItemRow({
               ) : null}
             </div>
 
-            <div className="ms-2">
-              <Button color="secondary" type="button">
+            <div className="ms-2" {...provided.dragHandleProps}>
+              <Button color="secondary" type="button" disabled>
                 <FontAwesomeIcon icon={faUpDown} title="Move item" />
               </Button>
             </div>
