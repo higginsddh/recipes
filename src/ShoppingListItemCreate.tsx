@@ -54,10 +54,10 @@ function useCreateShoppingListItemMutation(
 
       const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
 
-      const response = await executePost(
-        "/api/shoppingListItem",
-        shoppingListItem
-      );
+      const response = await executePost("/api/shoppingListItem", {
+        ...shoppingListItem,
+        order: 0,
+      });
 
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -78,12 +78,13 @@ function useCreateShoppingListItemMutation(
           shoppingListItems: Array<ShoppingListItem>;
         }>("shoppingListItems", (old) => ({
           shoppingListItems: [
-            ...(old?.shoppingListItems ?? []),
             {
               purchased: false,
               quantity: 1,
+              order: 0,
               ...shoppingListItem,
             },
+            ...(old?.shoppingListItems ?? []),
           ],
         }));
 

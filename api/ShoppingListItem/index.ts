@@ -76,14 +76,14 @@ async function updateShoppingListItem(request: HttpRequest, context: Context) {
     .item(id)
     .read();
 
-  if (originalShoppingListItem.order !== body.order) {
-    if (typeof body.order === "number") {
+  if (originalShoppingListItem?.order !== body?.order) {
+    if (typeof body?.order === "number") {
       incrementOrder(container, body.order);
     }
 
-    if (typeof originalShoppingListItem.order === "number") {
-      decrementOrder(container, originalShoppingListItem.order);
-    }
+    // if (typeof originalShoppingListItem?.order === "number") {
+    //   decrementOrder(container, originalShoppingListItem.order);
+    // }
   }
 
   await container.item(id).replace({
@@ -116,31 +116,6 @@ async function createShoppingListeItem(request: HttpRequest, context: Context) {
   });
 }
 
-async function updateOrder(
-  container: Container,
-  order: number,
-  filterExpression: ">=" | "<=",
-  incrementValue: number
-) {
-  const { resources: itemsToIncrement } = await container.items
-    .query(
-      `SELECT c.Id FROM c WHERE c.type = 'shoppinglistitem' AND c['order'] ${filterExpression} ${order}`
-    )
-    .fetchAll();
-
-  for (let i = 0; i < itemsToIncrement.length; i++) {
-    await container.item(itemsToIncrement[0].id).patch({
-      operations: [
-        {
-          op: "incr",
-          path: "/order",
-          value: incrementValue,
-        },
-      ],
-    });
-  }
-}
-
 async function deleteShoppingListItem(request: HttpRequest, context: Context) {
   const { ids } = request.body as { ids: Array<string> };
   console.log(ids);
@@ -155,7 +130,7 @@ async function deleteShoppingListItem(request: HttpRequest, context: Context) {
     .fetchAll();
 
   for (let i = 0; i < itemsToReorder.length; i++) {
-    await container.item(itemsToReorder[0].id).patch({
+    await container.item(itemsToReorder[i].id).patch({
       operations: [
         {
           op: "set",
@@ -173,6 +148,31 @@ async function incrementOrder(container: Container, order: number) {
 
 async function decrementOrder(container: Container, order: number) {
   await updateOrder(container, order, "<=", -1);
+}
+
+async function updateOrder(
+  container: Container,
+  order: number,
+  filterExpression: ">=" | "<=",
+  incrementValue: number
+) {
+  const { resources: itemsToIncrement } = await container.items
+    .query(
+      `SELECT * FROM c WHERE c.type = 'shoppinglistitem' AND c['order'] ${filterExpression} ${order}`
+    )
+    .fetchAll();
+
+  for (let i = 0; i < itemsToIncrement.length; i++) {
+    await container.item(itemsToIncrement[i].id).patch({
+      operations: [
+        {
+          op: "incr",
+          path: "/order",
+          value: incrementValue,
+        },
+      ],
+    });
+  }
 }
 
 function setSignalRMessageToShoppingListItemsChanged(context: Context) {
