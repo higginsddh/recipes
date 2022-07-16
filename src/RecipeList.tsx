@@ -90,7 +90,7 @@ export default function ReceipeList({
                     {r.link ? (
                       <div>
                         <a href={r.link} target="_blank">
-                          Linked recipe
+                          {r.title}
                         </a>
                       </div>
                     ) : (
