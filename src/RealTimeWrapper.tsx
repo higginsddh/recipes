@@ -1,6 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import React, { useEffect } from "react";
 import { useQueryClient } from "react-query";
+import { getConnectionId, setConnectionId } from "./services/httpUtilities";
 
 const RealTimeWrapper: React.FunctionComponent<{
   children: JSX.Element | JSX.Element[];
@@ -20,12 +21,25 @@ function useSignalRSubscription() {
       .configureLogging(signalR.LogLevel.Information)
       .build();
 
-    connection.on("shoppingListItemsChanged", () => {
-      console.log("test");
-      queryClient.invalidateQueries(["shoppingListItems"]);
+    connection.on("shoppingListItemsChanged", (message) => {
+      if (getConnectionId() !== message) {
+        console.info("clearing cache since different connection");
+        queryClient.invalidateQueries(["shoppingListItems"]);
+      } else {
+        console.info("same connection, not clearing cache");
+      }
     });
 
-    connection.start().catch(console.error);
+    connection.onreconnected((connectionId) => {
+      setConnectionId(connectionId ?? "");
+    });
+
+    connection
+      .start()
+      .catch(console.error)
+      .then(() => {
+        setConnectionId(connection.connectionId ?? "");
+      });
 
     return function cleanup() {
       connection.stop();

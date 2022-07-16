@@ -19,11 +19,10 @@ import {
 import { v4 } from "uuid";
 import { Recipe } from "../models/recipe";
 import { ShoppingListItem } from "../models/shoppingListItem";
-import { buildRoute } from "./buildRoute";
 import DeleteRecipe from "./DeleteRecipe";
 import EditRecipe from "./EditRecipe";
 import FullPageSpinner from "./FullPageSpinner";
-import { postData } from "./services/httpUtilities";
+import { executeGet, executePost } from "./services/httpUtilities";
 
 export default function ReceipeList({
   searchFilter,
@@ -32,7 +31,7 @@ export default function ReceipeList({
 }) {
   const { isLoading, error, data } = useQuery<{ recipes: Array<Recipe> }>(
     "recipes",
-    () => fetch(buildRoute("/api/recipes")).then((res) => res.json())
+    () => executeGet("/api/recipes").then((res) => res.json())
   );
 
   const [showAddConfirmation, setShowAddConfirmation] = useState(false);
@@ -192,7 +191,7 @@ function useCreateShoppingListItemsMutation(
       setShowSpinner(true);
 
       const results = await Promise.all(
-        shoppingListItems.map((i) => postData("/api/shoppingListItem", i))
+        shoppingListItems.map((i) => executePost("/api/shoppingListItem", i))
       );
 
       if (results.some((r) => !r.ok)) {

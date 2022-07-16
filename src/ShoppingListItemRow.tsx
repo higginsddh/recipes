@@ -4,7 +4,7 @@ import { QueryClient, useMutation, useQueryClient } from "react-query";
 import { Button } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import { useForm, UseFormSetValue } from "react-hook-form";
-import { patchData } from "./services/httpUtilities";
+import { executePatch } from "./services/httpUtilities";
 import toast from "react-hot-toast";
 import { useEffect, useRef } from "react";
 import { debounceTime, Subject } from "rxjs";
@@ -114,7 +114,7 @@ function useGetSaveMutation(
 ) {
   return useMutation(
     async (shoppingListItem: Partial<FormFields>) => {
-      const response = await patchData(
+      const response = await executePatch(
         `/api/ShoppingListItem/${shoppingListItemId}`,
         shoppingListItem
       );

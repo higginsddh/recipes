@@ -4,7 +4,6 @@ import {
   useQuery,
   useQueryClient,
 } from "react-query";
-import { buildRoute } from "./buildRoute";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import FullPageSpinner from "./FullPageSpinner";
 import ShoppingListItemCreate from "./ShoppingListItemCreate";
@@ -12,6 +11,7 @@ import ShoppingListItemRow from "./ShoppingListItemRow";
 import ErrorBoundary from "./ErrorBoundary";
 import { Button } from "reactstrap";
 import toast from "react-hot-toast";
+import { executeDelete, executeGet } from "./services/httpUtilities";
 
 export default function ShoppingList() {
   const queryClient = useQueryClient();
@@ -23,7 +23,7 @@ export default function ShoppingList() {
   } = useQuery<{
     shoppingListItems: Array<ShoppingListItem>;
   }>("shoppingListItems", () =>
-    fetch(buildRoute("/api/shoppingListItem")).then((res) => res.json())
+    executeGet("/api/shoppingListItem").then((res) => res.json())
   );
 
   const { mutate: deleteShoppingListItems } =
@@ -76,9 +76,8 @@ export default function ShoppingList() {
 function useDeleteShoppingListItem(queryClient: QueryClient) {
   return useMutation(
     async (ids: Array<string>) => {
-      await fetch(buildRoute(`/api/shoppingListItem`), {
-        method: "DELETE",
-        body: JSON.stringify({ ids }),
+      await executeDelete(`/api/shoppingListItem`, {
+        ids,
       });
     },
     {

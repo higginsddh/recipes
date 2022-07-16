@@ -109,10 +109,11 @@ async function deleteShoppingListItem(request: HttpRequest, context: Context) {
 }
 
 function setSignalRMessageToShoppingListItemsChanged(context: Context) {
+  console.log(context.req.headers["signalrconnectionid"]);
   context.bindings.signalRMessages = [
     {
       target: "shoppingListItemsChanged",
-      arguments: [],
+      arguments: [context.req.headers["signalrconnectionid"]],
     },
   ];
 }

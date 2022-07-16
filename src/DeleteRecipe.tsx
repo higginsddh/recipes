@@ -1,12 +1,12 @@
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
-import { buildRoute } from "./buildRoute";
 import IconButton from "./IconButton";
 import { Recipe } from "../models/recipe";
 import { useState } from "react";
 import { Button, Modal, ModalBody, ModalFooter } from "reactstrap";
 import toast from "react-hot-toast";
+import { executeDelete } from "./services/httpUtilities";
 
 export default function DeleteRecipe({
   recipeId,
@@ -61,9 +61,7 @@ export default function DeleteRecipe({
 function useDeleteReceipe(queryClient: QueryClient) {
   return useMutation(
     async (id: string) => {
-      await fetch(buildRoute(`/api/recipes?id=${id}`), {
-        method: "DELETE",
-      });
+      await executeDelete(`/api/recipes?id=${id}`);
     },
     {
       onMutate: async (id: string) => {

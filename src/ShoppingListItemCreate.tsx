@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import { Button, Input } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
-import { postData } from "./services/httpUtilities";
+import { executePost } from "./services/httpUtilities";
 import React, { useState } from "react";
 import { v4 } from "uuid";
 import toast from "react-hot-toast";
@@ -54,7 +54,7 @@ function useCreateShoppingListItemMutation(
 
       const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
 
-      const response = await postData(
+      const response = await executePost(
         "/api/shoppingListItem",
         shoppingListItem
       );

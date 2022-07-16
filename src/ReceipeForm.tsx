@@ -14,7 +14,6 @@ import {
   ModalHeader,
 } from "reactstrap";
 import { useForm } from "react-hook-form";
-import { buildRoute } from "./buildRoute";
 import { Recipe } from "../models/recipe";
 import { ErrorResponse } from "../models/errorResponse";
 import React, { useEffect, useRef, useState } from "react";
@@ -26,7 +25,11 @@ import { UploadedFile } from "../models/uploadedFile";
 
 import { Typeahead } from "react-bootstrap-typeahead";
 import "react-bootstrap-typeahead/css/Typeahead.css";
-import { patchData, postData } from "./services/httpUtilities";
+import {
+  executeGet,
+  executePatch,
+  executePost,
+} from "./services/httpUtilities";
 import ReceipeFormIngredients from "./ReceipeFormIngredients";
 
 export type RecipeFormFields = {
@@ -231,7 +234,7 @@ export default function ReceipeForm({
 function useLoadRecipeData(recipeId: string | undefined) {
   return useQuery<Recipe>(["recipes", recipeId], async () => {
     if (recipeId) {
-      const res = await fetch(buildRoute(`/api/recipes/${recipeId}`));
+      const res = await executeGet(`/api/recipes/${recipeId}`);
       return await res.json();
     } else {
       return Promise.resolve({
@@ -244,7 +247,7 @@ function useLoadRecipeData(recipeId: string | undefined) {
 
 function useLoadTags() {
   return useQuery<Array<{ name: string }>>(["tags"], async () => {
-    const res = await fetch(buildRoute(`/api/tags`));
+    const res = await executeGet(`/api/tags`);
     const resultArray = await res.json();
     return resultArray.tags;
   });
@@ -271,9 +274,9 @@ function useGetSaveMutation(
       let response;
       try {
         if (recipeId) {
-          response = await patchData(`/api/recipes/${recipeId}`, recipe);
+          response = await executePatch(`/api/recipes/${recipeId}`, recipe);
         } else {
-          response = await postData("/api/recipes", recipe);
+          response = await executePost("/api/recipes", recipe);
         }
       } catch (e) {
         setErrorResponse(defaultErrorResponse);
@@ -321,9 +324,9 @@ function useUploadFileMutation(
 ) {
   return useMutation(
     async (files: FileList) => {
-      const { connectionString } = (await fetch("/api/FileUploadPath").then(
-        (r) => r.json()
-      )) as {
+      const { connectionString } = (await executeGet(
+        "/api/FileUploadPath"
+      ).then((r) => r.json())) as {
         connectionString: string;
       };
 
