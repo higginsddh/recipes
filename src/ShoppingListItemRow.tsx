@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import { Button } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormSetValue } from "react-hook-form";
 import { patchData } from "./services/httpUtilities";
 import toast from "react-hot-toast";
 import { useEffect, useRef } from "react";
@@ -20,7 +20,7 @@ export default function ShoppingListItemRow({
   shoppingListItem: ShoppingListItem;
 }) {
   const queryClient = useQueryClient();
-  const { register, getValues, watch } = useForm<FormFields>({
+  const { register, getValues, watch, setValue } = useForm<FormFields>({
     defaultValues: {
       name: shoppingListItem.name,
       purchased: shoppingListItem.purchased,
@@ -46,6 +46,8 @@ export default function ShoppingListItemRow({
       subscription.unsubscribe();
     };
   }, []);
+
+  useSyncFields(shoppingListItem, setValue);
 
   return (
     <>
@@ -82,6 +84,28 @@ export default function ShoppingListItemRow({
       </div>
     </>
   );
+}
+
+function useSyncFields(
+  shoppingListItem: ShoppingListItem,
+  setValue: UseFormSetValue<FormFields>
+) {
+  const originalValues = useRef<ShoppingListItem>(shoppingListItem);
+  syncField(originalValues, shoppingListItem, setValue, "name");
+  syncField(originalValues, shoppingListItem, setValue, "purchased");
+}
+
+function syncField(
+  originalValues: React.MutableRefObject<ShoppingListItem>,
+  shoppingListItem: ShoppingListItem,
+  setValue: UseFormSetValue<FormFields>,
+  field: keyof ShoppingListItem & keyof FormFields
+) {
+  if (originalValues.current[field] !== shoppingListItem[field]) {
+    setValue(field, shoppingListItem[field]);
+
+    (originalValues.current as any)[field] = shoppingListItem[field];
+  }
 }
 
 function useGetSaveMutation(
