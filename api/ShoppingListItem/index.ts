@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { getContainer } from "../dbService";
 import { CosmosShoppingListItem } from "../cosmosModel/cosmosShoppingListItem";
+import { Container } from "@azure/cosmos";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -56,7 +57,10 @@ async function getShoppingList(request: HttpRequest, context: Context) {
 
     const shoppingListItems = resources as Array<CosmosShoppingListItem>;
 
-    const data = { shoppingListItems };
+    const data = {
+      shoppingListItems: shoppingListItems.sort(getSortFunction),
+    };
+
     context.res = {
       body: data,
     };
@@ -71,6 +75,16 @@ async function updateShoppingListItem(request: HttpRequest, context: Context) {
   const { resource: originalShoppingListItem } = await container
     .item(id)
     .read();
+
+  if (originalShoppingListItem.order !== body.order) {
+    if (typeof body.order === "number") {
+      incrementOrder(container, body.order);
+    }
+
+    if (typeof originalShoppingListItem.order === "number") {
+      decrementOrder(container, originalShoppingListItem.order);
+    }
+  }
 
   await container.item(id).replace({
     ...originalShoppingListItem,
@@ -92,10 +106,39 @@ async function createShoppingListeItem(request: HttpRequest, context: Context) {
 
   const container = await getContainer();
 
+  if (typeof body.order === "number") {
+    await incrementOrder(container, body.order);
+  }
+
   await container.items.create({
     ...body,
     type: "shoppinglistitem",
   });
+}
+
+async function updateOrder(
+  container: Container,
+  order: number,
+  filterExpression: ">=" | "<=",
+  incrementValue: number
+) {
+  const { resources: itemsToIncrement } = await container.items
+    .query(
+      `SELECT c.Id FROM c WHERE c.type = 'shoppinglistitem' AND c['order'] ${filterExpression} ${order}`
+    )
+    .fetchAll();
+
+  for (let i = 0; i < itemsToIncrement.length; i++) {
+    await container.item(itemsToIncrement[0].id).patch({
+      operations: [
+        {
+          op: "incr",
+          path: "/order",
+          value: incrementValue,
+        },
+      ],
+    });
+  }
 }
 
 async function deleteShoppingListItem(request: HttpRequest, context: Context) {
@@ -106,6 +149,30 @@ async function deleteShoppingListItem(request: HttpRequest, context: Context) {
 
   const promises = ids.map((id) => container.item(id).delete());
   await Promise.all(promises);
+
+  const { resources: itemsToReorder } = await container.items
+    .query("SELECT * FROM c WHERE c.type = 'shoppinglistitem'")
+    .fetchAll();
+
+  for (let i = 0; i < itemsToReorder.length; i++) {
+    await container.item(itemsToReorder[0].id).patch({
+      operations: [
+        {
+          op: "set",
+          path: "/order",
+          value: i,
+        },
+      ],
+    });
+  }
+}
+
+async function incrementOrder(container: Container, order: number) {
+  await updateOrder(container, order, ">=", 1);
+}
+
+async function decrementOrder(container: Container, order: number) {
+  await updateOrder(container, order, "<=", -1);
 }
 
 function setSignalRMessageToShoppingListItemsChanged(context: Context) {
@@ -116,4 +183,17 @@ function setSignalRMessageToShoppingListItemsChanged(context: Context) {
       arguments: [context.req.headers["signalrconnectionid"]],
     },
   ];
+}
+
+function getSortFunction(a: CosmosShoppingListItem, b: CosmosShoppingListItem) {
+  const aOrder = a.order ?? 999999;
+  const bOrder = b.order ?? 999999;
+
+  if (aOrder < bOrder) {
+    return -1;
+  } else if (aOrder > bOrder) {
+    return 1;
+  } else {
+    return 0;
+  }
 }

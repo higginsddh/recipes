@@ -1,13 +1,13 @@
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner, faUpDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { QueryClient, useMutation, useQueryClient } from "react-query";
+import { useQueryClient } from "react-query";
 import { Button } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import { useForm, UseFormSetValue } from "react-hook-form";
-import { executePatch } from "./services/httpUtilities";
-import toast from "react-hot-toast";
 import { useEffect, useRef } from "react";
 import { debounceTime, Subject } from "rxjs";
+import { Draggable } from "react-beautiful-dnd";
+import { useSaveShoppingListMutation } from "./useSaveShoppingListMutation";
 
 type FormFields = {
   name: string;
@@ -16,8 +16,10 @@ type FormFields = {
 
 export default function ShoppingListItemRow({
   shoppingListItem,
+  index,
 }: {
   shoppingListItem: ShoppingListItem;
+  index: number;
 }) {
   const queryClient = useQueryClient();
   const { register, getValues, watch, setValue } = useForm<FormFields>({
@@ -28,7 +30,7 @@ export default function ShoppingListItemRow({
   });
 
   const { mutate: updateShoppingListItem, isLoading: isSaving } =
-    useGetSaveMutation(shoppingListItem.id, queryClient);
+    useSaveShoppingListMutation(queryClient);
 
   const purchased = watch("purchased");
 
@@ -38,6 +40,7 @@ export default function ShoppingListItemRow({
       .pipe(debounceTime(150))
       .subscribe(() => {
         updateShoppingListItem({
+          id: shoppingListItem.id,
           name: getValues("name"),
         });
       });
@@ -51,37 +54,58 @@ export default function ShoppingListItemRow({
 
   return (
     <>
-      <div className="input-group mb-3">
-        <div className="input-group-text">
-          <input
-            className="form-check-input mt-0"
-            type="checkbox"
-            value=""
-            aria-label="Item purchased?"
-            {...register("purchased", {
-              onChange: () => {
-                updateShoppingListItem({
-                  purchased: getValues("purchased"),
-                });
-              },
-            })}
-          />
-        </div>
-        <input
-          className="form-control"
-          {...register("name", {
-            onChange: () => {
-              nameChange.current.next(getValues("name").trim());
-            },
-          })}
-          style={{ textDecoration: purchased ? "line-through" : undefined }}
-        />
-        {isSaving ? (
-          <Button color="secondary" type="button" disabled>
-            <FontAwesomeIcon icon={faSpinner} spin={true} />
-          </Button>
-        ) : null}
-      </div>
+      <Draggable draggableId={shoppingListItem.id} index={index}>
+        {(provided, snapshot) => (
+          <div
+            className="d-flex"
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+          >
+            <div className="input-group mb-3">
+              <div className="input-group-text">
+                <input
+                  className="form-check-input mt-0"
+                  type="checkbox"
+                  value=""
+                  aria-label="Item purchased?"
+                  {...register("purchased", {
+                    onChange: () => {
+                      updateShoppingListItem({
+                        id: shoppingListItem.id,
+                        purchased: getValues("purchased"),
+                      });
+                    },
+                  })}
+                />
+              </div>
+              <input
+                className="form-control"
+                {...register("name", {
+                  onChange: () => {
+                    nameChange.current.next(getValues("name").trim());
+                  },
+                })}
+                style={{
+                  textDecoration: purchased ? "line-through" : undefined,
+                }}
+              />
+
+              {isSaving ? (
+                <Button color="secondary" type="button" disabled>
+                  <FontAwesomeIcon icon={faSpinner} spin={true} />
+                </Button>
+              ) : null}
+            </div>
+
+            <div className="ms-2">
+              <Button color="secondary" type="button">
+                <FontAwesomeIcon icon={faUpDown} title="Move item" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </Draggable>
     </>
   );
 }
@@ -106,31 +130,4 @@ function syncField(
 
     (originalValues.current as any)[field] = shoppingListItem[field];
   }
-}
-
-function useGetSaveMutation(
-  shoppingListItemId: string,
-  queryClient: QueryClient
-) {
-  return useMutation(
-    async (shoppingListItem: Partial<FormFields>) => {
-      const response = await executePatch(
-        `/api/ShoppingListItem/${shoppingListItemId}`,
-        shoppingListItem
-      );
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries("shoppingListItems");
-      },
-      onError: (e) => {
-        toast.error("Unable to save change");
-        console.error(JSON.stringify(e));
-      },
-    }
-  );
 }
