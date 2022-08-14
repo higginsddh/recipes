@@ -4,7 +4,7 @@ import { useQueryClient } from "react-query";
 import { Button } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import { useForm, UseFormSetValue } from "react-hook-form";
-import { useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { debounceTime, Subject } from "rxjs";
 import { Draggable } from "react-beautiful-dnd";
 import { useSaveShoppingListMutation } from "./useSaveShoppingListMutation";
@@ -29,6 +29,8 @@ export default function ShoppingListItemRow({
     },
   });
 
+  const [nameHasFocus, setNameHasFocus] = useState(false);
+
   const { mutate: updateShoppingListItem, isLoading: isSaving } =
     useSaveShoppingListMutation(queryClient);
 
@@ -50,7 +52,8 @@ export default function ShoppingListItemRow({
     };
   }, []);
 
-  useSyncFields(shoppingListItem, setValue);
+  const originalValues = useRef<ShoppingListItem>(shoppingListItem);
+  useSyncFields(originalValues, shoppingListItem, setValue, nameHasFocus);
 
   return (
     <>
@@ -80,9 +83,15 @@ export default function ShoppingListItemRow({
               </div>
               <input
                 className="form-control"
+                onFocus={() => {
+                  setNameHasFocus(true);
+                }}
                 {...register("name", {
                   onChange: () => {
                     nameChange.current.next(getValues("name").trim());
+                  },
+                  onBlur: () => {
+                    setNameHasFocus(false);
                   },
                 })}
                 style={{
@@ -110,12 +119,16 @@ export default function ShoppingListItemRow({
 }
 
 function useSyncFields(
+  originalValues: MutableRefObject<ShoppingListItem>,
   shoppingListItem: ShoppingListItem,
-  setValue: UseFormSetValue<FormFields>
+  setValue: UseFormSetValue<FormFields>,
+  nameHasFocus: boolean
 ) {
-  const originalValues = useRef<ShoppingListItem>(shoppingListItem);
-  syncField(originalValues, shoppingListItem, setValue, "name");
   syncField(originalValues, shoppingListItem, setValue, "purchased");
+
+  if (!nameHasFocus) {
+    syncField(originalValues, shoppingListItem, setValue, "name");
+  }
 }
 
 function syncField(
