@@ -80,6 +80,17 @@ export default function ReceipeList({
       ) : null}
 
       {(data?.recipes ?? [])
+        .sort((a, b) => {
+          const normalizedATitle = a.title.toLowerCase();
+          const normalizedBTitle = b.title.toLowerCase();
+          if (normalizedATitle < normalizedBTitle) {
+            return -1;
+          } else if (normalizedATitle > normalizedBTitle) {
+            return 1;
+          } else {
+            return 0;
+          }
+        })
         .filter((r) => isSearchMatch(searchFilter, r))
         .map((r) => (
           <Card key={r.id} className="mb-3">
@@ -121,16 +132,18 @@ export default function ReceipeList({
                     <div>{r.notes}</div>
                     {(r.tags ?? []).length > 0 ? (
                       <div className="mt-2 d-flex">
-                        {r.tags?.map((t) => (
-                          <Badge
-                            color="info"
-                            pill
-                            key={t.name}
-                            className="me-2"
-                          >
-                            {t.name}
-                          </Badge>
-                        ))}
+                        {r.tags
+                          ?.filter((t) => (t?.name ?? "").trim())
+                          .map((t, index) => (
+                            <Badge
+                              color="info"
+                              pill
+                              key={`${t.name}_${index}`}
+                              className="me-2"
+                            >
+                              {t.name}
+                            </Badge>
+                          ))}
                       </div>
                     ) : null}
                   </div>
