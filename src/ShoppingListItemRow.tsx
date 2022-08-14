@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "react-query";
 import { Button } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
-import { useForm, UseFormSetValue } from "react-hook-form";
+import { useForm, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { debounceTime, Subject } from "rxjs";
 import { Draggable } from "react-beautiful-dnd";
@@ -53,7 +53,13 @@ export default function ShoppingListItemRow({
   }, []);
 
   const originalValues = useRef<ShoppingListItem>(shoppingListItem);
-  useSyncFields(originalValues, shoppingListItem, setValue, nameHasFocus);
+  useSyncFields({
+    originalValues,
+    shoppingListItem,
+    setValue,
+    getValues,
+    nameHasFocus,
+  });
 
   return (
     <>
@@ -118,26 +124,56 @@ export default function ShoppingListItemRow({
   );
 }
 
-function useSyncFields(
-  originalValues: MutableRefObject<ShoppingListItem>,
-  shoppingListItem: ShoppingListItem,
-  setValue: UseFormSetValue<FormFields>,
-  nameHasFocus: boolean
-) {
-  syncField(originalValues, shoppingListItem, setValue, "purchased");
+function useSyncFields({
+  originalValues,
+  shoppingListItem,
+  setValue,
+  getValues,
+  nameHasFocus,
+}: {
+  originalValues: MutableRefObject<ShoppingListItem>;
+  shoppingListItem: ShoppingListItem;
+  setValue: UseFormSetValue<FormFields>;
+  getValues: UseFormGetValues<FormFields>;
+  nameHasFocus: boolean;
+}) {
+  syncField({
+    originalValues,
+    shoppingListItem,
+    setValue,
+    getValues,
+    field: "purchased",
+  });
 
   if (!nameHasFocus) {
-    syncField(originalValues, shoppingListItem, setValue, "name");
+    syncField({
+      originalValues,
+      shoppingListItem,
+      setValue,
+      getValues,
+      field: "name",
+    });
   }
 }
 
-function syncField(
-  originalValues: React.MutableRefObject<ShoppingListItem>,
-  shoppingListItem: ShoppingListItem,
-  setValue: UseFormSetValue<FormFields>,
-  field: keyof ShoppingListItem & keyof FormFields
-) {
-  if (originalValues.current[field] !== shoppingListItem[field]) {
+function syncField({
+  originalValues,
+  shoppingListItem,
+  setValue,
+  getValues,
+  field,
+}: {
+  originalValues: React.MutableRefObject<ShoppingListItem>;
+  shoppingListItem: ShoppingListItem;
+  setValue: UseFormSetValue<FormFields>;
+  getValues: UseFormGetValues<FormFields>;
+  field: keyof ShoppingListItem & keyof FormFields;
+}) {
+  const hasPendingSave = originalValues.current[field] !== getValues(field);
+  if (
+    originalValues.current[field] !== shoppingListItem[field] &&
+    !hasPendingSave
+  ) {
     setValue(field, shoppingListItem[field]);
 
     (originalValues.current as any)[field] = shoppingListItem[field];
