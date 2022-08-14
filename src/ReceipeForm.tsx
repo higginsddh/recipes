@@ -79,7 +79,9 @@ export default function ReceipeForm({
         ],
       });
       setFiles(defaultRecipeData?.files ?? []);
-      setSelectedTags(defaultRecipeData?.tags ?? []);
+      setSelectedTags(
+        defaultRecipeData?.tags?.filter((t) => (t?.name ?? "").trim()) ?? []
+      );
       hasFormInitialized.current = true;
     }
   }, [defaultRecipeData, isLoadingRecipeData]);
@@ -188,7 +190,11 @@ export default function ReceipeForm({
                 id="tags"
                 allowNew
                 multiple
-                options={tags?.map((t) => t.name) ?? []}
+                options={
+                  tags
+                    ?.filter((t) => (t?.name ?? "").trim())
+                    .map((t) => t.name) ?? []
+                }
                 defaultSelected={(selectedTags ?? []).map((t) => t.name)}
                 onChange={(e) => {
                   setSelectedTags(
