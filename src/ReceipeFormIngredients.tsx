@@ -1,9 +1,15 @@
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Control, useFieldArray, UseFormRegister } from "react-hook-form";
+import {
+  Control,
+  useFieldArray,
+  UseFieldArrayInsert,
+  UseFormRegister,
+} from "react-hook-form";
 import { Button } from "reactstrap";
 import { RecipeFormFields } from "./ReceipeForm";
 import { v4 as uuidv4 } from "uuid";
+import { useEffect, useRef } from "react";
 
 export default function ReceipeFormIngredients({
   control,
@@ -17,9 +23,11 @@ export default function ReceipeFormIngredients({
     name: "ingredients",
   });
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   return (
     <>
-      <div>
+      <div ref={containerRef}>
         <label>Ingredients</label>
         {fields.map((field, index) => (
           <div className="input-group mb-3" key={field.id}>
@@ -28,24 +36,16 @@ export default function ReceipeFormIngredients({
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  insert(index + 1, {
-                    id: uuidv4(),
-                    name: "",
-                  });
+                  insertNewItem(insert, index, containerRef);
                 }
               }}
-              {...register(`ingredients.${index}.name`)}
+              {...register(getInputElementName(index))}
             />
             <Button
               className="me-2"
               color="secondary"
               type="button"
-              onClick={() =>
-                insert(index + 1, {
-                  id: uuidv4(),
-                  name: "",
-                })
-              }
+              onClick={() => insertNewItem(insert, index, containerRef)}
             >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
@@ -71,4 +71,36 @@ export default function ReceipeFormIngredients({
       </div>
     </>
   );
+}
+function insertNewItem(
+  insert: UseFieldArrayInsert<RecipeFormFields, "ingredients">,
+  index: number,
+  containerDiv: React.RefObject<HTMLDivElement>
+) {
+  const newIndex = index + 1;
+  insert(
+    newIndex,
+    {
+      id: uuidv4(),
+      name: "",
+    },
+    {
+      shouldFocus: true,
+    }
+  );
+
+  setTimeout(() => {
+    const newInputCandidates = document.getElementsByName(
+      getInputElementName(newIndex)
+    );
+    newInputCandidates.forEach((c) => {
+      if (containerDiv.current && containerDiv.current.contains(c)) {
+        c.scrollIntoView(true);
+      }
+    });
+  });
+}
+
+function getInputElementName(index: number): `ingredients.${number}.name` {
+  return `ingredients.${index}.name`;
 }
