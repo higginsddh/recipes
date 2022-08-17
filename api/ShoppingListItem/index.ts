@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { getContainer } from "../dbService";
 import { CosmosShoppingListItem } from "../cosmosModel/cosmosShoppingListItem";
 import { Container } from "@azure/cosmos";
+import { PageBlobUpdateSequenceNumberResponse } from "@azure/storage-blob";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -74,22 +75,11 @@ async function updateShoppingListItem(request: HttpRequest, context: Context) {
     .item(id)
     .read();
 
-  // if (originalShoppingListItem?.order !== body?.order) {
-  if (typeof body?.order === "number") {
-    console.log("increment");
-    await incrementOrder(container, body.order, id);
+  if (originalShoppingListItem?.order !== body?.order) {
+    if (typeof body?.order === "number") {
+      await reorderItems(container, id, body.order);
+    }
   }
-
-  if (
-    typeof originalShoppingListItem?.order === "number" &&
-    (typeof body?.order !== "number" ||
-      originalShoppingListItem.order > body.order)
-  ) {
-    console.log("decrement");
-    await decrementOrder(container, originalShoppingListItem.order, id);
-  }
-  // }
-  console.log(`Update Id: ${id}, Value: ${body.order}`);
 
   await container.item(id).replace({
     ...originalShoppingListItem,
@@ -112,7 +102,7 @@ async function createShoppingListeItem(request: HttpRequest, context: Context) {
   const container = await getContainer();
 
   if (typeof body.order === "number") {
-    await incrementOrder(container, body.order, "");
+    await incrementOrder(container, body.order);
   }
 
   await container.items.create({
@@ -148,49 +138,61 @@ async function deleteShoppingListItem(request: HttpRequest, context: Context) {
   }
 }
 
-async function incrementOrder(
-  container: Container,
-  referenceOrder: number,
-  itemUpdatingId: string
-) {
-  await updateOrder(container, referenceOrder, ">=", itemUpdatingId);
+async function incrementOrder(container: Container, referenceOrder: number) {
+  await updateOrder(container, referenceOrder, ">=", 1);
 }
 
-async function decrementOrder(
+async function reorderItems(
   container: Container,
-  referenceOrder: number,
-  itemUpdatingId: string
+  itemUpdatingId: string | null,
+  newOrder: number
 ) {
-  await updateOrder(container, referenceOrder, "<=", itemUpdatingId);
+  const { resources: itemsToUpdate } = await container.items
+    .query({
+      query: `SELECT * FROM c WHERE c.type = 'shoppinglistitem' ORDER by c['order']`,
+    })
+    .fetchAll();
+
+  let reorderedItems: Array<any>;
+  if (itemUpdatingId !== null) {
+    const oldOrder = itemsToUpdate.findIndex((i) => i.id === itemUpdatingId);
+    reorderedItems = reorder(itemsToUpdate, oldOrder, newOrder);
+  } else {
+    reorderedItems = itemsToUpdate;
+  }
+
+  for (let i = 0; i < reorderedItems.length; i++) {
+    await container.item(reorderedItems[i].id).patch({
+      operations: [
+        {
+          op: "set",
+          path: "/order",
+          value: i,
+        },
+      ],
+    });
+  }
 }
 
 async function updateOrder(
   container: Container,
   referenceOrder: number,
   filterExpression: ">=" | "<=",
-  itemUpdatingId: string
+  incrementValue: number
 ) {
   const { resources: itemsToIncrement } = await container.items
     .query({
-      query: `SELECT * FROM c WHERE c.type = 'shoppinglistitem' AND c['id'] != @itemId AND c['order'] ${filterExpression} ${referenceOrder} ORDER by c['order']`,
-      parameters: [
-        {
-          name: "@itemId",
-          value: itemUpdatingId,
-        },
-      ],
+      query: `SELECT * FROM c WHERE c.type = 'shoppinglistitem' AND c['order'] ${filterExpression} ${referenceOrder}`,
     })
     .fetchAll();
 
-  let baseValue = filterExpression === "<=" ? 0 : referenceOrder;
   for (let i = 0; i < itemsToIncrement.length; i++) {
-    console.log(`Id: ${itemsToIncrement[i].id}, Value: ${baseValue + i}`);
     await container.item(itemsToIncrement[i].id).patch({
       operations: [
         {
-          op: "set",
+          op: "incr",
           path: "/order",
-          value: baseValue + i,
+          value: incrementValue,
         },
       ],
     });
@@ -217,4 +219,12 @@ function getSortFunction(a: CosmosShoppingListItem, b: CosmosShoppingListItem) {
   } else {
     return 0;
   }
+}
+
+function reorder<T>(list: Array<T>, startIndex: number, endIndex: number) {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
 }
