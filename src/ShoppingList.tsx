@@ -113,7 +113,6 @@ export default function ShoppingList() {
       <ErrorBoundary errorMessage="Unable to load shopping list items">
         <DragDropContext
           onDragEnd={(result) => {
-            console.log(result);
             reorderShoppingListItems({
               id: result.draggableId,
               order: result.destination?.index ?? 0,

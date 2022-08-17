@@ -7,8 +7,6 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  context.log("HTTP trigger function processed a request.");
-
   switch (req.method) {
     case "GET":
       await getShoppingList(req, context);
@@ -76,15 +74,22 @@ async function updateShoppingListItem(request: HttpRequest, context: Context) {
     .item(id)
     .read();
 
-  if (originalShoppingListItem?.order !== body?.order) {
-    if (typeof body?.order === "number") {
-      incrementOrder(container, body.order);
-    }
-
-    // if (typeof originalShoppingListItem?.order === "number") {
-    //   decrementOrder(container, originalShoppingListItem.order);
-    // }
+  // if (originalShoppingListItem?.order !== body?.order) {
+  if (typeof body?.order === "number") {
+    console.log("increment");
+    await incrementOrder(container, body.order, id);
   }
+
+  if (
+    typeof originalShoppingListItem?.order === "number" &&
+    (typeof body?.order !== "number" ||
+      originalShoppingListItem.order > body.order)
+  ) {
+    console.log("decrement");
+    await decrementOrder(container, originalShoppingListItem.order, id);
+  }
+  // }
+  console.log(`Update Id: ${id}, Value: ${body.order}`);
 
   await container.item(id).replace({
     ...originalShoppingListItem,
@@ -107,7 +112,7 @@ async function createShoppingListeItem(request: HttpRequest, context: Context) {
   const container = await getContainer();
 
   if (typeof body.order === "number") {
-    await incrementOrder(container, body.order);
+    await incrementOrder(container, body.order, "");
   }
 
   await container.items.create({
@@ -118,7 +123,6 @@ async function createShoppingListeItem(request: HttpRequest, context: Context) {
 
 async function deleteShoppingListItem(request: HttpRequest, context: Context) {
   const { ids } = request.body as { ids: Array<string> };
-  console.log(ids);
 
   const container = await getContainer();
 
@@ -126,7 +130,9 @@ async function deleteShoppingListItem(request: HttpRequest, context: Context) {
   await Promise.all(promises);
 
   const { resources: itemsToReorder } = await container.items
-    .query("SELECT * FROM c WHERE c.type = 'shoppinglistitem'")
+    .query(
+      "SELECT * FROM c WHERE c.type = 'shoppinglistitem' ORDER by c['order']"
+    )
     .fetchAll();
 
   for (let i = 0; i < itemsToReorder.length; i++) {
@@ -142,33 +148,49 @@ async function deleteShoppingListItem(request: HttpRequest, context: Context) {
   }
 }
 
-async function incrementOrder(container: Container, order: number) {
-  await updateOrder(container, order, ">=", 1);
+async function incrementOrder(
+  container: Container,
+  referenceOrder: number,
+  itemUpdatingId: string
+) {
+  await updateOrder(container, referenceOrder, ">=", itemUpdatingId);
 }
 
-async function decrementOrder(container: Container, order: number) {
-  await updateOrder(container, order, "<=", -1);
+async function decrementOrder(
+  container: Container,
+  referenceOrder: number,
+  itemUpdatingId: string
+) {
+  await updateOrder(container, referenceOrder, "<=", itemUpdatingId);
 }
 
 async function updateOrder(
   container: Container,
-  order: number,
+  referenceOrder: number,
   filterExpression: ">=" | "<=",
-  incrementValue: number
+  itemUpdatingId: string
 ) {
   const { resources: itemsToIncrement } = await container.items
-    .query(
-      `SELECT * FROM c WHERE c.type = 'shoppinglistitem' AND c['order'] ${filterExpression} ${order}`
-    )
+    .query({
+      query: `SELECT * FROM c WHERE c.type = 'shoppinglistitem' AND c['id'] != @itemId AND c['order'] ${filterExpression} ${referenceOrder} ORDER by c['order']`,
+      parameters: [
+        {
+          name: "@itemId",
+          value: itemUpdatingId,
+        },
+      ],
+    })
     .fetchAll();
 
+  let baseValue = filterExpression === "<=" ? 0 : referenceOrder;
   for (let i = 0; i < itemsToIncrement.length; i++) {
+    console.log(`Id: ${itemsToIncrement[i].id}, Value: ${baseValue + i}`);
     await container.item(itemsToIncrement[i].id).patch({
       operations: [
         {
-          op: "incr",
+          op: "set",
           path: "/order",
-          value: incrementValue,
+          value: baseValue + i,
         },
       ],
     });
@@ -176,7 +198,6 @@ async function updateOrder(
 }
 
 function setSignalRMessageToShoppingListItemsChanged(context: Context) {
-  console.log(context.req.headers["signalrconnectionid"]);
   context.bindings.signalRMessages = [
     {
       target: "shoppingListItemsChanged",
