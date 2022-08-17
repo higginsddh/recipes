@@ -85,14 +85,14 @@ export default function ShoppingList() {
   }
 
   return (
-    <div>
+    <div style={{ marginBottom: "50px" }}>
       <div className="d-block d-sm-flex">
         <div className="flex-grow-1">
           <ShoppingListItemCreate />
         </div>
 
         {data.shoppingListItems.some((li) => li.purchased) ? (
-          <div className="ms-0 ms-sm-3 mb-3">
+          <div style={{ position: "fixed", bottom: "15px", zIndex: 2 }}>
             <Button
               color="secondary"
               type="button"
