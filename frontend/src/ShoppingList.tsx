@@ -92,7 +92,16 @@ export default function ShoppingList() {
         </div>
 
         {data.shoppingListItems.some((li) => li.purchased) ? (
-          <div style={{ position: "fixed", bottom: "15px", zIndex: 2 }}>
+          <div
+            className="bg-light px-2"
+            style={{
+              position: "fixed",
+              bottom: "15px",
+              zIndex: 2,
+              left: 0,
+              right: 0,
+            }}
+          >
             <Button
               color="secondary"
               type="button"
