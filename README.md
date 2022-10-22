@@ -25,6 +25,7 @@ root: yarn start-server
 
 Tech Debt:
 
+- Fix ordering logic. Seems to be race-condition can affect ordering.
 - Tests (vitest challenges: need to import "it", etc; test suite empty)
 - Shared models between server and client
 - Set CORS properties on blob storage
