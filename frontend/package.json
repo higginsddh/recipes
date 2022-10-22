@@ -34,7 +34,7 @@
     "start": "vite",
     "build": "tsc && vite build",
     "serve": "vite preview",
-    "start-server": "swa start  http://localhost:5173/ --api-location api"
+    "start-server": "swa start  http://localhost:5173/ --api-location ../api"
   },
   "eslintConfig": {
     "extends": [

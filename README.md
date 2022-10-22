@@ -23,6 +23,10 @@ api: yarn watch
 root: yarn start
 root: yarn start-server
 
+Issues With Approach:
+
+- Debugging API TypeScript files can be a pain. Line numbers don't match.
+
 Tech Debt:
 
 - Fix ordering logic. Seems to be race-condition can affect ordering.
