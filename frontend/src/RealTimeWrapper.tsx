@@ -1,6 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import React, { useEffect } from "react";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { getConnectionId, setConnectionId } from "./services/httpUtilities";
 
 const RealTimeWrapper: React.FunctionComponent<{

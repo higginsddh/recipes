@@ -3,7 +3,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-} from "react-query";
+} from "@tanstack/react-query";
 import {
   Button,
   FormGroup,
@@ -313,8 +313,8 @@ function useGetSaveMutation(
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries("recipes");
-        queryClient.invalidateQueries("tags");
+        queryClient.invalidateQueries(["recipes"]);
+        queryClient.invalidateQueries(["tags"]);
         onClose();
       },
       onError: (e) => {

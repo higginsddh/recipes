@@ -1,6 +1,6 @@
 import { faSpinner, faUpDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import { useForm, UseFormGetValues, UseFormSetValue } from "react-hook-form";

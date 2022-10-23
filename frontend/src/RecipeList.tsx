@@ -6,7 +6,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-} from "react-query";
+} from "@tanstack/react-query";
 import {
   Card,
   CardBody,
@@ -30,7 +30,7 @@ export default function ReceipeList({
   searchFilter: string;
 }) {
   const { isLoading, error, data } = useQuery<{ recipes: Array<Recipe> }>(
-    "recipes",
+    ["recipes"],
     () => executeGet("/api/recipes").then((res) => res.json())
   );
 
@@ -213,7 +213,7 @@ function useCreateShoppingListItemsMutation(
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries("shoppingListItems");
+        queryClient.invalidateQueries(["shoppingListItems"]);
         setShowAddConfirmation(true);
         setShowSpinner(false);
       },

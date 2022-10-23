@@ -3,7 +3,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-} from "react-query";
+} from "@tanstack/react-query";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import FullPageSpinner from "./FullPageSpinner";
 import ShoppingListItemCreate from "./ShoppingListItemCreate";
@@ -27,7 +27,7 @@ export default function ShoppingList() {
     data: data,
   } = useQuery<{
     shoppingListItems: Array<ShoppingListItem>;
-  }>("shoppingListItems", () =>
+  }>(["shoppingListItems"], () =>
     executeGet("/api/shoppingListItem").then((res) => res.json())
   );
 
@@ -36,12 +36,12 @@ export default function ShoppingList() {
 
   const { mutate: reorderShoppingListItems, isLoading: isSaving } =
     useSaveShoppingListMutation(queryClient, async (args) => {
-      await queryClient.cancelQueries("shoppingListItems");
+      await queryClient.cancelQueries(["shoppingListItems"]);
 
       const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
 
       queryClient.setQueryData<{ shoppingListItems: Array<ShoppingListItem> }>(
-        "shoppingListItems",
+        ["shoppingListItems"],
         (old) => {
           if (!old?.shoppingListItems) {
             return { shoppingListItems: [] };
@@ -163,7 +163,7 @@ function useDeleteShoppingListItem(queryClient: QueryClient) {
 
         queryClient.setQueryData<{
           shoppingListItems: Array<ShoppingListItem>;
-        }>("shoppingListItems", (old) => ({
+        }>(["shoppingListItems"], (old) => ({
           shoppingListItems:
             old?.shoppingListItems.filter((r) => !ids.includes(r.id)) ?? [],
         }));

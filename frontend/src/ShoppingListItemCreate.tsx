@@ -1,6 +1,10 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { QueryClient, useMutation, useQueryClient } from "react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Button, Input } from "reactstrap";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import { executePost } from "./services/httpUtilities";
@@ -76,7 +80,7 @@ function useCreateShoppingListItemMutation(
 
         queryClient.setQueryData<{
           shoppingListItems: Array<ShoppingListItem>;
-        }>("shoppingListItems", (old) => ({
+        }>(["shoppingListItems"], (old) => ({
           shoppingListItems: [
             {
               purchased: false,
@@ -96,7 +100,7 @@ function useCreateShoppingListItemMutation(
       onSuccess: () => {},
 
       onSettled: () => {
-        queryClient.invalidateQueries("shoppingListItems");
+        queryClient.invalidateQueries(["shoppingListItems"]);
       },
 
       onError: (e, _, context) => {

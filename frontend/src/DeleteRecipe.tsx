@@ -1,6 +1,10 @@
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { QueryClient, useMutation, useQueryClient } from "react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import IconButton from "./IconButton";
 import { Recipe } from "../models/recipe";
 import { useState } from "react";
@@ -65,12 +69,12 @@ function useDeleteReceipe(queryClient: QueryClient) {
     },
     {
       onMutate: async (id: string) => {
-        await queryClient.cancelQueries("recipes");
+        await queryClient.cancelQueries(["recipes"]);
 
         const oldQueryData = queryClient.getQueriesData(["recipes"]);
 
         queryClient.setQueryData<{ recipes: Array<Recipe> }>(
-          "recipes",
+          ["recipes"],
           (old) => ({ recipes: old?.recipes.filter((r) => r.id !== id) ?? [] })
         );
 
@@ -78,12 +82,12 @@ function useDeleteReceipe(queryClient: QueryClient) {
       },
 
       onSettled: () => {
-        queryClient.invalidateQueries("recipes");
+        queryClient.invalidateQueries(["recipes"]);
       },
 
       onError: (err: any, newRecipes: any, context: any) => {
         toast.error("Unable to delete item");
-        queryClient.setQueryData("recipes", context.previousRecipes);
+        queryClient.setQueryData(["recipes"], context.previousRecipes);
       },
     }
   );

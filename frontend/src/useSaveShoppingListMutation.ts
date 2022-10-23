@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { QueryClient, useMutation } from "react-query";
+import { QueryClient, useMutation } from "@tanstack/react-query";
 import { ShoppingListItem } from "../models/shoppingListItem";
 import { executePatch } from "./services/httpUtilities";
 
@@ -34,7 +34,7 @@ export function useSaveShoppingListMutation(
       },
 
       onSettled: () => {
-        queryClient.invalidateQueries("shoppingListItems");
+        queryClient.invalidateQueries(["shoppingListItems"]);
       },
 
       onError: (e, _, context: any) => {
@@ -43,7 +43,7 @@ export function useSaveShoppingListMutation(
 
         if (context && context.previousShoppingListItems) {
           queryClient.setQueryData(
-            "shoppingListItems",
+            ["shoppingListItems"],
             context.previousShoppingListItems
           );
         }

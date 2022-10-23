@@ -19,9 +19,9 @@ first need to build files into /dist folder
 HotReload: https://techcommunity.microsoft.com/t5/apps-on-azure-blog/introducing-the-azure-static-web-apps-cli/ba-p/2257581
 
 Commands:
-api: yarn watch
-root: yarn start
-root: yarn start-server
+api: npm run watch
+root: npm start
+root: npm run start-server
 
 Issues With Approach:
 

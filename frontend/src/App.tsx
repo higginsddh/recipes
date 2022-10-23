@@ -1,5 +1,5 @@
 import "./App.css";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Recipes from "./Recipes";
 import AppNavbar from "./AppNavbar";
 import { Routes, Route } from "react-router-dom";
