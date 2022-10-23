@@ -2,12 +2,12 @@ import { faSpinner, faUpDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "reactstrap";
-import { ShoppingListItem } from "../models/shoppingListItem";
+import { ShoppingListItem } from "../../models/shoppingListItem";
 import { useForm, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { debounceTime, Subject } from "rxjs";
 import { Draggable } from "react-beautiful-dnd";
-import { useSaveShoppingListMutation } from "./useSaveShoppingListMutation";
+import { useSaveShoppingListMutation } from "./queries";
 
 type FormFields = {
   name: string;
@@ -21,7 +21,6 @@ export default function ShoppingListItemRow({
   shoppingListItem: ShoppingListItem;
   index: number;
 }) {
-  const queryClient = useQueryClient();
   const { register, getValues, watch, setValue } = useForm<FormFields>({
     defaultValues: {
       name: shoppingListItem.name,
@@ -32,7 +31,7 @@ export default function ShoppingListItemRow({
   const [nameHasFocus, setNameHasFocus] = useState(false);
 
   const { mutate: updateShoppingListItem, isLoading: isSaving } =
-    useSaveShoppingListMutation(queryClient);
+    useSaveShoppingListMutation();
 
   const purchased = watch("purchased");
 

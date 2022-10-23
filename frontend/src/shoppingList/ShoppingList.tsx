@@ -1,22 +1,16 @@
-import {
-  QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { ShoppingListItem } from "../models/shoppingListItem";
-import FullPageSpinner from "./FullPageSpinner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ShoppingListItem } from "../../models/shoppingListItem";
+import FullPageSpinner from "../FullPageSpinner";
 import ShoppingListItemCreate from "./ShoppingListItemCreate";
 import ShoppingListItemRow from "./ShoppingListItemRow";
-import ErrorBoundary from "./ErrorBoundary";
+import ErrorBoundary from "../ErrorBoundary";
 import { Button } from "reactstrap";
-import toast from "react-hot-toast";
-import { executeDelete, executeGet } from "./services/httpUtilities";
+import { executeGet } from "../services/httpUtilities";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import {
-  SaveChangeArg,
+  useDeleteShoppingListItem,
   useSaveShoppingListMutation,
-} from "./useSaveShoppingListMutation";
+} from "./queries";
 
 export default function ShoppingList() {
   const queryClient = useQueryClient();
@@ -31,11 +25,10 @@ export default function ShoppingList() {
     executeGet("/api/shoppingListItem").then((res) => res.json())
   );
 
-  const { mutate: deleteShoppingListItems } =
-    useDeleteShoppingListItem(queryClient);
+  const { mutate: deleteShoppingListItems } = useDeleteShoppingListItem();
 
   const { mutate: reorderShoppingListItems, isLoading: isSaving } =
-    useSaveShoppingListMutation(queryClient, async (args) => {
+    useSaveShoppingListMutation(async (args) => {
       await queryClient.cancelQueries(["shoppingListItems"]);
 
       const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
@@ -145,46 +138,6 @@ export default function ShoppingList() {
         </DragDropContext>
       </ErrorBoundary>
     </div>
-  );
-}
-
-function useDeleteShoppingListItem(queryClient: QueryClient) {
-  return useMutation(
-    async (ids: Array<string>) => {
-      await executeDelete(`/api/shoppingListItem`, {
-        ids,
-      });
-    },
-    {
-      onMutate: async (ids: Array<string>) => {
-        await queryClient.cancelQueries(["shoppingListItems"]);
-
-        const oldQueryData = queryClient.getQueriesData(["shoppingListItems"]);
-
-        queryClient.setQueryData<{
-          shoppingListItems: Array<ShoppingListItem>;
-        }>(["shoppingListItems"], (old) => ({
-          shoppingListItems:
-            old?.shoppingListItems.filter((r) => !ids.includes(r.id)) ?? [],
-        }));
-
-        return { previousShoppingListItems: oldQueryData[0][1] };
-      },
-
-      onSettled: () => {
-        queryClient.invalidateQueries(["shoppingListItems"]);
-      },
-
-      onError: (err: any, newRecipes: any, context: any) => {
-        queryClient.setQueryData(
-          ["shoppingListItems"],
-          context.previousShoppingListItems
-        );
-
-        toast.error("Unable to delete item(s)");
-        console.error(JSON.stringify(err));
-      },
-    }
   );
 }
 
