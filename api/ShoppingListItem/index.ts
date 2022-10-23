@@ -203,7 +203,7 @@ function setSignalRMessageToShoppingListItemsChanged(context: Context) {
   context.bindings.signalRMessages = [
     {
       target: "shoppingListItemsChanged",
-      arguments: [context.req.headers["signalrconnectionid"]],
+      arguments: [context.req?.headers["signalrconnectionid"]],
     },
   ];
 }

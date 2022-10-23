@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ShoppingListItem } from "../../models/shoppingListItem";
+import { ShoppingListItem } from "@models/shoppingListItem";
 import FullPageSpinner from "../FullPageSpinner";
 import ShoppingListItemCreate from "./ShoppingListItemCreate";
 import ShoppingListItemRow from "./ShoppingListItemRow";
