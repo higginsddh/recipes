@@ -1,1 +1,8 @@
-export type UploadedFile = { url: string; id: string };
+import { z } from "zod";
+
+export const UploadedFileDefinition = z.object({
+  url: z.string(),
+  id: z.string(),
+});
+
+export type UploadedFile = z.infer<typeof UploadedFileDefinition>;
