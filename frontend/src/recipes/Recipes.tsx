@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "reactstrap";
 import AddReceiptButton from "./AddRecipeButton";
-import "./App.css";
+import "../App.css";
 import ReceipeList from "./RecipeList";
 
 export default function Recipes() {

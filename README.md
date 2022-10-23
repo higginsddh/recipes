@@ -26,6 +26,8 @@ root: npm run start-server
 Issues With Approach:
 
 - Debugging API TypeScript files can be a pain. Line numbers don't match.
+- Issues with SWA
+  - "yarn build" doesn't fail GitHub Workflow
 
 Tech Debt:
 
@@ -41,21 +43,11 @@ Tech Debt:
 
 Plan:
 
-- Tags
-- Ingredients
-- Search
 - Shopping List
-  - Basic List
-  - Checkboxes on items
   - Sort by category
-  - Allow moving around
 - Weekly Planner
   - Add recipes
   - Add restaurants
   - Generate shopping list
 - Integrate Restaurants
   - Combine reviews + to try
-
-Issues with SWA
-
-- "yarn build" doesn't fail GitHub Workflow

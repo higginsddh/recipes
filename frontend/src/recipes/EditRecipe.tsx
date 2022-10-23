@@ -1,7 +1,7 @@
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import IconButton from "./IconButton";
+import IconButton from "../IconButton";
 import ReceipeForm from "./ReceipeForm";
 
 export default function EditRecipe({ recipeId }: { recipeId: string }) {

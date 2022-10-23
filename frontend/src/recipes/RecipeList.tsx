@@ -1,28 +1,15 @@
 import { faImage } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useState } from "react";
-import {
-  QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import {
-  Card,
-  CardBody,
-  CardTitle,
-  CardText,
-  Badge,
-  Button,
-  Alert,
-} from "reactstrap";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardBody, CardTitle, Badge, Button, Alert } from "reactstrap";
 import { v4 } from "uuid";
-import { Recipe } from "../models/recipe";
-import { ShoppingListItem } from "../models/shoppingListItem";
+import { Recipe } from "../../models/recipe";
 import DeleteRecipe from "./DeleteRecipe";
 import EditRecipe from "./EditRecipe";
-import FullPageSpinner from "./FullPageSpinner";
-import { executeGet, executePost } from "./services/httpUtilities";
+import FullPageSpinner from "../FullPageSpinner";
+import { executeGet } from "../services/httpUtilities";
+import { useCreateShoppingListItemsMutation } from "../shoppingList/queries";
 
 export default function ReceipeList({
   searchFilter,
@@ -37,13 +24,8 @@ export default function ReceipeList({
   const [showAddConfirmation, setShowAddConfirmation] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
 
-  const queryClient = useQueryClient();
   const { mutate: createShoppingListItems } =
-    useCreateShoppingListItemsMutation(
-      queryClient,
-      setShowAddConfirmation,
-      setShowSpinner
-    );
+    useCreateShoppingListItemsMutation(setShowAddConfirmation, setShowSpinner);
 
   useEffect(() => {
     let id: any | null = null;
@@ -192,36 +174,4 @@ function containsTerm(searchTerm: string, inputToCheck: string | null) {
   inputToCheck = inputToCheck ?? "";
 
   return inputToCheck.toLowerCase().includes(searchTerm.toLowerCase());
-}
-
-function useCreateShoppingListItemsMutation(
-  queryClient: QueryClient,
-  setShowAddConfirmation: React.Dispatch<React.SetStateAction<boolean>>,
-  setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
-) {
-  return useMutation(
-    async (shoppingListItems: Array<Partial<ShoppingListItem>>) => {
-      setShowSpinner(true);
-
-      const results = await Promise.all(
-        shoppingListItems.map((i) => executePost("/api/shoppingListItem", i))
-      );
-
-      if (results.some((r) => !r.ok)) {
-        throw new Error("Network response was not ok");
-      }
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(["shoppingListItems"]);
-        setShowAddConfirmation(true);
-        setShowSpinner(false);
-      },
-
-      onError: (e) => {
-        console.error(JSON.stringify(e));
-        setShowSpinner(false);
-      },
-    }
-  );
 }
