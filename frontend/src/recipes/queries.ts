@@ -7,9 +7,9 @@ import {
 } from "@tanstack/react-query";
 import ImageBlobReduce from "image-blob-reduce";
 import toast from "react-hot-toast";
-import { ErrorResponse } from "../../models/errorResponse";
-import { Recipe } from "../../models/recipe";
-import { UploadedFile } from "../../models/uploadedFile";
+import { ErrorResponse } from "../../../models/errorResponse";
+import { Recipe } from "@models/recipe";
+import { UploadedFile } from "@models/uploadedFile";
 import {
   executeDelete,
   executeGet,

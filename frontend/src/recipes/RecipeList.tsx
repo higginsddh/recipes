@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardBody, CardTitle, Badge, Button, Alert } from "reactstrap";
 import { v4 } from "uuid";
-import { Recipe } from "../../models/recipe";
+import { Recipe } from "@models/recipe";
 import DeleteRecipe from "./DeleteRecipe";
 import EditRecipe from "./EditRecipe";
 import FullPageSpinner from "../FullPageSpinner";

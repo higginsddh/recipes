@@ -9,11 +9,11 @@ import {
   ModalHeader,
 } from "reactstrap";
 import { useForm } from "react-hook-form";
-import { ErrorResponse } from "../../models/errorResponse";
+import { ErrorResponse } from "../../../models/errorResponse";
 import { useEffect, useRef, useState } from "react";
 import FullPageSpinner from "../FullPageSpinner";
 import { v4 as uuidv4 } from "uuid";
-import { UploadedFile } from "../../models/uploadedFile";
+import { UploadedFile } from "@models/uploadedFile";
 
 import { Typeahead } from "react-bootstrap-typeahead";
 import "react-bootstrap-typeahead/css/Typeahead.css";
