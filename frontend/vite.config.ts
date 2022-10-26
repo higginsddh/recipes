@@ -21,11 +21,12 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       devOptions: {
-        enabled: process.env.SW_DEV === "true",
+        enabled: true,
         /* when using generateSW the PWA plugin will switch to classic */
         type: "module",
         navigateFallback: "index.html",
       },
+      manifestFilename: "manifest.json",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
       manifest: {
         name: "Higgins Shopping List",
