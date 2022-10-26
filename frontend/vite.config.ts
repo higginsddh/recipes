@@ -20,6 +20,7 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "auto",
       devOptions: {
         enabled: true,
         /* when using generateSW the PWA plugin will switch to classic */

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/dev-dist
 /frontend/node_modules
 /api/node_modules
 /.pnp
