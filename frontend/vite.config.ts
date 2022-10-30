@@ -18,33 +18,33 @@ export default defineConfig({
         // ...svgr options (https://react-svgr.com/docs/options/)
       },
     }),
-    VitePWA({
-      registerType: "autoUpdate",
-      injectRegister: "auto",
-      devOptions: {
-        enabled: true,
-      },
-      manifestFilename: "manifest.json",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
-      manifest: {
-        name: "Higgins Shopping List",
-        short_name: "ShoppingList",
-        description: "Higgins Shopping List",
-        theme_color: "#ffffff",
-        display: "browser",
-        icons: [
-          {
-            src: "pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-        ],
-      },
-    }),
+    // VitePWA({
+    //   registerType: "autoUpdate",
+    //   injectRegister: "auto",
+    //   devOptions: {
+    //     enabled: true,
+    //   },
+    //   manifestFilename: "manifest.json",
+    //   includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+    //   manifest: {
+    //     name: "Higgins Shopping List",
+    //     short_name: "ShoppingList",
+    //     description: "Higgins Shopping List",
+    //     theme_color: "#ffffff",
+    //     display: "browser",
+    //     icons: [
+    //       {
+    //         src: "pwa-192x192.png",
+    //         sizes: "192x192",
+    //         type: "image/png",
+    //       },
+    //       {
+    //         src: "pwa-512x512.png",
+    //         sizes: "512x512",
+    //         type: "image/png",
+    //       },
+    //     ],
+    //   },
+    // }),
   ],
 });
