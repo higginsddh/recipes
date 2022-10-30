@@ -20,8 +20,8 @@ HotReload: https://techcommunity.microsoft.com/t5/apps-on-azure-blog/introducing
 
 Commands:
 api: npm run watch
-root: npm start
-root: npm run start-server
+frontend: npm start
+frontend: npm run start-server
 
 Issues With Approach:
 
@@ -43,6 +43,7 @@ Tech Debt:
 
 Plan:
 
+- Combine ingredients when adding recipes
 - Shopping List
   - Sort by category
 - Weekly Planner
