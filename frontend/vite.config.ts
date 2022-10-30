@@ -23,9 +23,6 @@ export default defineConfig({
       injectRegister: "auto",
       devOptions: {
         enabled: true,
-        /* when using generateSW the PWA plugin will switch to classic */
-        type: "module",
-        navigateFallback: "index.html",
       },
       manifestFilename: "manifest.json",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
@@ -34,6 +31,7 @@ export default defineConfig({
         short_name: "ShoppingList",
         description: "Higgins Shopping List",
         theme_color: "#ffffff",
+        display: "browser",
         icons: [
           {
             src: "pwa-192x192.png",
