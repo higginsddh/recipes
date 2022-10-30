@@ -10,7 +10,7 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   if (req.method === "GET") {
     const client = BlobServiceClient.fromConnectionString(
-      process.env.STORAGE_CONNETION_STRING
+      process?.env?.STORAGE_CONNETION_STRING ?? ""
     );
 
     var date = new Date();

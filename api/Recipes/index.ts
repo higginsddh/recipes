@@ -6,6 +6,7 @@ import { promisify } from "util";
 import { FileSearchTerm } from "../cosmosModel/fileSearchTerm";
 import { CosmosRecipe } from "../cosmosModel/cosmosRecipe";
 import { Container } from "@azure/cosmos";
+import { Recipe } from "../models/recipe";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -81,7 +82,7 @@ async function updateRecipe(request: HttpRequest, context: Context) {
 }
 
 async function createRecipe(request: HttpRequest, context: Context) {
-  const body = request.body as any;
+  const body = request.body;
   if (!(body.title ?? "").trim()) {
     context.res = {
       status: 400,
@@ -152,7 +153,7 @@ async function readTextFromImages(
   const newFiles = newRecipe.files.filter(
     (newRecipeFile) =>
       !originalRecipe ||
-      !originalRecipe.files.some(
+      !originalRecipe?.files?.some(
         (originalRecipeFile) => originalRecipeFile.id === newRecipeFile.id
       )
   );
@@ -163,14 +164,14 @@ async function readTextFromImages(
         "Ocp-Apim-Subscription-Key": process.env.COMPUTER_VISION_KEY,
       },
     }),
-    process.env.COMPUTER_VISION_URL
+    process.env.COMPUTER_VISION_URL ?? ""
   );
 
   console.log(`processing ${newFiles.length} file(s)`);
 
   let fileSearchTerms = [
-    ...(originalRecipe?.fileSearchTerms ?? []).filter((t) =>
-      newRecipe.files.some((f) => f.id === t.fileId)
+    ...(originalRecipe?.fileSearchTerms ?? []).filter(
+      (t) => newRecipe?.files?.some((f) => f.id === t.fileId) ?? false
     ),
   ];
 
@@ -191,7 +192,7 @@ async function readTextFromImages(
     if (operationResult.status === "succeeded") {
       fileSearchTerms = [
         ...fileSearchTerms,
-        ...operationResult.analyzeResult.readResults.flatMap((r) =>
+        ...(operationResult?.analyzeResult?.readResults?.flatMap((r) =>
           r.lines.map(
             (l) =>
               ({
@@ -199,7 +200,7 @@ async function readTextFromImages(
                 text: l.text,
               } as FileSearchTerm)
           )
-        ),
+        ) ?? []),
       ];
     } else {
       console.log("unable to get response from ocr service");

@@ -19,9 +19,15 @@ first need to build files into /dist folder
 HotReload: https://techcommunity.microsoft.com/t5/apps-on-azure-blog/introducing-the-azure-static-web-apps-cli/ba-p/2257581
 
 Commands:
-api: yarn watch
-root: yarn start
-root: yarn start-server
+api: npm run watch
+frontend: npm start
+frontend: npm run start-server
+
+Issues With Approach:
+
+- Debugging API TypeScript files can be a pain. Line numbers don't match.
+- Issues with SWA
+  - "yarn build" doesn't fail GitHub Workflow
 
 Tech Debt:
 
@@ -37,21 +43,12 @@ Tech Debt:
 
 Plan:
 
-- Tags
-- Ingredients
-- Search
+- Combine ingredients when adding recipes
 - Shopping List
-  - Basic List
-  - Checkboxes on items
   - Sort by category
-  - Allow moving around
 - Weekly Planner
   - Add recipes
   - Add restaurants
   - Generate shopping list
 - Integrate Restaurants
   - Combine reviews + to try
-
-Issues with SWA
-
-- "yarn build" doesn't fail GitHub Workflow
