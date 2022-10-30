@@ -31,7 +31,6 @@ export default defineConfig({
         short_name: "ShoppingList",
         description: "Higgins Shopping List",
         theme_color: "#ffffff",
-        display: "browser",
         icons: [
           {
             src: "pwa-192x192.png",
